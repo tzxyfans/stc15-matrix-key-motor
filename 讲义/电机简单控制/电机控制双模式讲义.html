@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单片机打卡天天练 · 电机控制双模式系统 · Step-by-Step 讲义</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    line-height: 1.75; color: #2c3e50;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf3 100%);
+    scroll-behavior: smooth;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+  header.hero {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3a7bd5 100%);
+    color: white; padding: 36px 40px; border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(30,60,114,0.25); margin-bottom: 28px;
+  }
+  header.hero h1 { font-size: 26px; margin-bottom: 8px; letter-spacing: 1px; }
+  header.hero .subtitle { font-size: 15px; opacity: 0.85; margin-bottom: 16px; }
+  header.hero .meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  header.hero .meta-tag {
+    background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 14px;
+    font-size: 13px; letter-spacing: 1px;
+  }
+  .card {
+    background: white; border-radius: 14px; padding: 28px 32px;
+    margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-size: 22px; color: #1e3c72; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 3px solid #3a7bd5;
+  }
+  .card h3 { font-size: 17px; color: #2a5298; margin: 18px 0 10px; }
+  .card p { margin-bottom: 10px; }
+  .card ul, .card ol { margin: 8px 0 12px 24px; }
+  .card li { margin-bottom: 6px; }
+  .step-card {
+    background: white; border-radius: 14px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
+  }
+  .step-header {
+    background: linear-gradient(135deg, #2a5298, #3a7bd5);
+    color: white; padding: 16px 32px; display: flex; align-items: center; gap: 14px;
+  }
+  .step-badge {
+    background: rgba(255,255,255,0.2); width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .step-header .step-title { font-size: 18px; font-weight: 600; }
+  .step-header .step-goal { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+  .step-body { padding: 24px 32px; }
+  .dialog-block { margin: 16px 0; }
+  .dialog-user {
+    background: #e8f4fd; border-left: 4px solid #3a7bd5;
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin-bottom: 12px;
+  }
+  .dialog-ai {
+    background: #f0f9f0; border-left: 4px solid #52c41a;
+    padding: 14px 18px; border-radius: 0 10px 10px 0;
+  }
+  .dialog-label {
+    font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .dialog-user .dialog-label { color: #2a5298; }
+  .dialog-ai .dialog-label { color: #389e0d; }
+  .dialog-content { font-size: 14px; color: #333; }
+  .dialog-content .quote {
+    background: rgba(0,0,0,0.04); padding: 10px 14px; border-radius: 8px;
+    font-style: italic; margin-top: 6px; border: 1px dashed #ccc;
+  }
+  .tip-box {
+    background: #fffbe6; border: 2px solid #ffe58f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .tip-box .tip-title {
+    color: #d48806; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tip-box ul { margin: 6px 0 0 20px; }
+  .insight-box {
+    background: #f6ffed; border: 2px solid #b7eb8f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .insight-box .insight-title {
+    color: #389e0d; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  pre {
+    background: #282c34; color: #abb2bf; padding: 16px 20px; border-radius: 10px;
+    font-family: "Consolas", "Courier New", monospace; font-size: 13px;
+    overflow-x: auto; margin: 12px 0; line-height: 1.5;
+  }
+  pre .kw { color: #c678dd; }
+  pre .str { color: #98c379; }
+  pre .com { color: #5c6370; font-style: italic; }
+  pre .fn { color: #61afef; }
+  pre .num { color: #d19a66; }
+  code {
+    background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+    font-family: "Consolas", monospace; font-size: 13px; color: #c7254e;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px;
+  }
+  th, td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; }
+  th { background: #f0f4f8; color: #1e3c72; font-weight: 600; }
+  tr:nth-child(even) { background: #fafbfc; }
+  .oled-screen {
+    background: #1a1a2e; color: #00ff88; font-family: monospace; font-size: 15px;
+    padding: 20px 28px; border-radius: 10px; margin: 14px 0;
+    box-shadow: inset 0 0 20px rgba(0,255,136,0.1); line-height: 1.8;
+    border: 2px solid #333; white-space: pre;
+  }
+  .oled-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+  .flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .flow-item {
+    background: #e8f4fd; border: 2px solid #3a7bd5; border-radius: 8px;
+    padding: 6px 16px; font-size: 14px; color: #2a5298; font-weight: 500;
+  }
+  .flow-arrow { color: #3a7bd5; font-size: 20px; font-weight: bold; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .summary-item {
+    background: #f8f9fb; border-radius: 10px; padding: 16px 20px; border: 1px solid #e0e6ed;
+  }
+  .summary-item h4 { color: #2a5298; font-size: 15px; margin-bottom: 8px; }
+  .summary-item p { font-size: 13px; color: #555; }
+  .toc {
+    background: white; border-radius: 14px; padding: 24px 32px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .toc h2 { font-size: 20px; color: #1e3c72; margin-bottom: 14px; }
+  .toc ol { margin-left: 24px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: #3a7bd5; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  footer { text-align: center; padding: 20px; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <h1>电机控制双模式系统 · Step-by-Step 讲义</h1>
+    <div class="subtitle">从驱动模块到自动/点动双模式——电机控制的渐进式开发</div>
+    <div class="meta-row">
+      <span class="meta-tag">单片机打卡天天练</span>
+      <span class="meta-tag">STC15F2K60S2</span>
+      <span class="meta-tag">电机驱动模块</span>
+      <span class="meta-tag">自动/点动双模式</span>
+      <span class="meta-tag">面向初学者</span>
+    </div>
+  </header>
+
+  <div class="toc">
+    <h2>📋 讲义目录</h2>
+    <ol>
+      <li><a href="#overview">项目概述与最终效果</a></li>
+      <li><a href="#knowledge">电机驱动基础知识铺垫</a></li>
+      <li><a href="#principles">与 AI 对话的核心原则</a></li>
+      <li><a href="#step1">Step 1 — 创建电机驱动模块（motor.h / motor.c）</a></li>
+      <li><a href="#step2">Step 2 — 设计自动控制主程序（S4正转/S5停止/S6反转）</a></li>
+      <li><a href="#step3">Step 3 — 加 OLED 显示（人机界面）</a></li>
+      <li><a href="#step4">Step 4 — 设计点动控制（按下驱动，放开停止）</a></li>
+      <li><a href="#step5">Step 5 — 整合双模式（S7 切换自动/点动）</a></li>
+      <li><a href="#step6">Step 6 — 简化版 → 工程约束版迭代</a></li>
+      <li><a href="#result">最终项目成果展示</a></li>
+      <li><a href="#summary">AI 对话经验总结</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="overview">
+    <h2>一、项目概述与最终效果</h2>
+    <h3>1.1 项目背景</h3>
+    <p>前序项目已实现按键次数计数控制系统。本次通过 <strong>6 轮渐进式对话</strong>，从零开始构建电机驱动模块，
+       逐步演化为一个具备<strong>自动/点动双模式切换、方向互锁、模式切换保护</strong>的完整电机控制系统。
+       整个过程经历了：驱动模块 → 自动控制 → 加显示 → 点动控制 → 双模式整合 → 工程约束完善，
+       是嵌入式"从模块到系统"的典型开发路径。</p>
+
+    <h3>1.2 最终实现的功能</h3>
+    <table>
+      <tr><th>按键</th><th>自动模式</th><th>点动模式</th></tr>
+      <tr><td><strong>S7</strong></td><td colspan="2">模式切换（仅停止时可切换）</td></tr>
+      <tr><td><strong>S4</strong></td><td>正转（放开事件，方向互锁）</td><td>按住正转，放开停止</td></tr>
+      <tr><td><strong>S6</strong></td><td>反转（放开事件，方向互锁）</td><td>按住反转，放开停止</td></tr>
+      <tr><td><strong>S5</strong></td><td>惯性停止</td><td>（同左，点动放开即停）</td></tr>
+    </table>
+
+    <h3>1.3 最终 OLED 显示效果</h3>
+    <div class="oled-label">自动模式正转中：</div>
+    <div class="oled-screen">    电机控制系统
+运行状态：正转
+当前模式：自动</div>
+    <div class="oled-label">点动模式停止中：</div>
+    <div class="oled-screen">    电机控制系统
+运行状态：停止
+当前模式：点动</div>
+
+    <h3>1.4 开发流程全景</h3>
+    <div class="flow-row">
+      <span class="flow-item">Step 1: 驱动模块</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 2: 自动控制</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 3: OLED显示</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 4: 点动控制</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 5: 双模式</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 6: 工程约束</span>
+    </div>
+  </div>
+
+  <div class="card" id="knowledge">
+    <h2>二、电机驱动基础知识铺垫</h2>
+    <h3>2.1 电机驱动三信号</h3>
+    <table>
+      <tr><th>信号</th><th>端口</th><th>电平逻辑</th><th>作用</th></tr>
+      <tr><td>PWM（驱动）</td><td>P4.6</td><td>低=驱动，高=惯性停</td><td>控制电机是否通电</td></tr>
+      <tr><td>DIR（方向）</td><td>P3.7</td><td>高=正转，低=反转</td><td>控制转动方向</td></tr>
+      <tr><td>BRAKE（刹车）</td><td>P4.7</td><td>低=刹车，高=松闸</td><td>快速制动</td></tr>
+    </table>
+
+    <h3>2.2 动作顺序（关键安全规则）</h3>
+    <div class="tip-box">
+      <div class="tip-title">⚠️ 动作顺序不能乱</div>
+      <ul>
+        <li><strong>启动</strong>：先松闸 → 设方向 → 再驱动（避免带电切换方向产生大电流冲击）</li>
+        <li><strong>停止</strong>：先停驱动 → 再刹车（避免驱动与刹车瞬间冲突）</li>
+        <li><strong>上电默认</strong>：惯性停转状态（BRAKE=1, PWM=1, DIR=1），上电不启动</li>
+      </ul>
+    </div>
+
+    <h3>2.3 PWM 恒定电平驱动（教学简化）</h3>
+    <p>本项目 PWM 不生成方波波形，只输出恒定电平：低电平=全速驱动，高电平=惯性停止。
+       这样无需配置定时器，面向初学者大幅简化。后续如需调速可改为 PWM 方波输出。</p>
+
+    <h3>2.4 两种按键检测方式</h3>
+    <table>
+      <tr><th>方式</th><th>函数</th><th>含义</th><th>适用场景</th></tr>
+      <tr><td>放开事件</td><td><code>Key_Sx_Released()</code></td><td>检测"按下后松开"的完整动作</td><td>自动模式（按一下切换状态）</td></tr>
+      <tr><td>电平检测</td><td><code>Key_Sx_Down()</code></td><td>检测当前是否按住</td><td>点动模式（按住有效，松开停止）</td></tr>
+    </table>
+  </div>
+
+  <div class="card" id="principles">
+    <h2>三、与 AI 对话的核心原则</h2>
+    <p>本次电机控制开发过程中，以下 5 条原则贯穿始终：</p>
+    <div class="tip-box">
+      <div class="tip-title">💡 五条核心原则</div>
+      <ul>
+        <li><strong>原则 1：模块化思维</strong> — 先要驱动模块再要主程序，AI 会自动分离 hardware 和 user 层，接口放 .h 实现放 .c</li>
+        <li><strong>原则 2：明确引脚</strong> — "PWM=P4.6, DIR=P3.7, BRAKE=P4.7" 直接指定，避免 AI 自行分配造成冲突</li>
+        <li><strong>原则 3：增量叠加</strong> — 每轮"在当前功能基础上继续加上…"，AI 在现有代码上叠加而非重写</li>
+        <li><strong>原则 4：简化优先</strong> — 觉得复杂时直接说"太复杂，先做简化版"，AI 去掉工程约束保留核心逻辑</li>
+        <li><strong>原则 5：逐步加约束</strong> — 理解核心后再说"加回工程安全约束"，AI 逐条补充并解释每条的意义</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-card" id="step1">
+    <div class="step-header">
+      <div class="step-badge">1</div>
+      <div>
+        <div class="step-title">创建电机驱动模块（motor.h / motor.c）</div>
+        <div class="step-goal">目标：封装电机四种动作，建立 hardware/user 分层架构</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"加入电机控制模块，PWM=P4.6, DIR=P3.7, BRAKE=P4.7，实现正转、反转、惯性停转、刹车停转。给初学者用，逻辑简单清晰。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>创建 <code>hardware/motor.h</code>（接口声明）和 <code>hardware/motor.c</code>（端口实现），建立分层架构</li>
+              <li>用 <code>sbit</code> 定义三个端口，<code>Motor_Init()</code> 配准双向口 + 上电默认惯性停转</li>
+              <li>四个函数严格按动作顺序：启动=松闸→设方向→驱动；停止=停驱动→（刹车）</li>
+              <li>PWM 用恒定电平而非方波，简化设计避免定时器配置</li>
+            </ul>
+            <pre><span class="com">/* motor.c — 四个动作函数 */</span>
+<span class="kw">void</span> <span class="fn">Motor_Forward</span>(<span class="kw">void</span>) {
+    BRAKE = <span class="num">1</span>;  DIR = <span class="num">1</span>;  PWM = <span class="num">0</span>;  <span class="com">/* 松闸→正转→驱动 */</span>
+}
+<span class="kw">void</span> <span class="fn">Motor_Coast</span>(<span class="kw">void</span>) {
+    PWM = <span class="num">1</span>;  BRAKE = <span class="num">1</span>;           <span class="com">/* 停驱动→松闸（惯性滑行） */</span>
+}
+<span class="kw">void</span> <span class="fn">Motor_Brake</span>(<span class="kw">void</span>) {
+    PWM = <span class="num">1</span>;  BRAKE = <span class="num">0</span>;           <span class="com">/* 停驱动→刹车（快速停） */</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"加入电机控制模块"</strong> — "模块"一词让 AI 自动采用 .h/.c 分离的模块化架构，而非把代码塞进 main.c。这是嵌入式工程的基本素养</li>
+          <li><strong>明确三个引脚</strong> — "PWM=P4.6, DIR=P3.7, BRAKE=P4.7" 直接指定引脚，AI 不需要自行分配，避免与已有按键引脚冲突</li>
+          <li><strong>"正转、反转、惯性停转、刹车停转"</strong> — 列出全部四个动作，AI 据此设计四个函数。注意"惯性停转"和"刹车停转"是两个不同的物理过程</li>
+          <li>AI 主动按<strong>动作顺序</strong>写代码（松闸→方向→驱动），并注释解释"避免大电流冲击"。这种工程细节是 AI 作为"有经验开发者"的体现</li>
+        </ul>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一步的核心是<strong>模块化</strong>和<strong>动作顺序</strong>。学生应理解：① 电机驱动独立成模块，
+           main.c 只调用接口，不直接操作端口——这是"高内聚低耦合"的入门；② 启动和停止有严格的端口操作顺序，
+           乱序会导致电流冲击或器件损坏。PWM 用恒定电平是教学简化，真实调速需 PWM 方波。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <div class="step-badge">2</div>
+      <div>
+        <div class="step-title">设计自动控制主程序（S4正转/S5停止/S6反转）</div>
+        <div class="step-goal">目标：用放开事件检测实现自动模式的电机控制</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"设计主程序 main 函数，S4 正转、S5 惯性停转、S6 反转，用放开事件检测。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>用 <code>Key_Sx_Released()</code> 检测放开事件（按下再松开才算一次完整操作）</li>
+              <li>引入状态变量 <code>state</code>：0=停止，1=正转，2=反转，按键动作时同步更新</li>
+              <li>主循环三段式：检测按键 → 执行动作 → 更新状态</li>
+            </ul>
+            <pre><span class="kw">while</span> (<span class="num">1</span>) {
+    <span class="kw">if</span> (<span class="fn">Key_S4_Released</span>() == <span class="num">1</span>) {
+        <span class="fn">Motor_Forward</span>();  state = <span class="num">1</span>;
+    }
+    <span class="kw">else if</span> (<span class="fn">Key_S6_Released</span>() == <span class="num">1</span>) {
+        <span class="fn">Motor_Reverse</span>(); state = <span class="num">2</span>;
+    }
+    <span class="kw">else if</span> (<span class="fn">Key_S5_Released</span>() == <span class="num">1</span>) {
+        <span class="fn">Motor_Coast</span>();   state = <span class="num">0</span>;
+    }
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"放开事件检测"</strong> — 明确指定用 Released 而非 Down。自动模式下"按一下切换状态"，需要完整的按下-松开动作，避免长按重复触发</li>
+          <li>AI 引入 <code>state</code> 变量记录电机状态——这是<strong>状态机</strong>思想的开始。后续双模式、限位保护都建立在这个状态变量之上</li>
+          <li>用 <code>else if</code> 而非三个独立 <code>if</code>，保证同一时刻只响应一个按键，这是简单的互锁</li>
+        </ul>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一步引入了两个核心概念：① <strong>放开事件 vs 电平检测</strong>——自动模式用 Released（按一下算一次），
+           点动模式用 Down（按住有效），选择哪种取决于交互需求；② <strong>状态变量</strong>——程序行为不仅看按键，
+           还看当前状态，这是状态机的入门。学生应对比两种检测方式的差异。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <div class="step-badge">3</div>
+      <div>
+        <div class="step-title">加 OLED 显示（人机界面）</div>
+        <div class="step-goal">目标：OLED 显示标题和运行状态，建立人机界面</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"加 OLED 显示，第一行'电机控制系统'，第二行'运行状态：正转/反转/停止'。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>标题和标签开机画一次，状态文字由主循环每帧根据 <code>state</code> 刷新</li>
+              <li>用 <code>OLED_ShowChinese</code> 显示中文，<code>OLED_ShowMixedText</code> 显示"中文+冒号"混合</li>
+              <li>验证字库包含"电机控制系统""运行状态""正转""反转""停止"等全部汉字</li>
+            </ul>
+            <pre><span class="com">/* 开机画固定界面 */</span>
+<span class="fn">OLED_ShowChinese</span>(<span class="num">24</span>, <span class="num">0</span>, <span class="str">"电机控制系统"</span>);   <span class="com">/* 第一行：标题 */</span>
+<span class="fn">OLED_ShowMixedText</span>(<span class="num">0</span>, <span class="num">16</span>, <span class="str">"运行状态:"</span>);     <span class="com">/* 第二行：标签 */</span>
+<span class="fn">OLED_ShowChinese</span>(<span class="num">72</span>, <span class="num">16</span>, <span class="str">"停止"</span>);           <span class="com">/* 初始状态 */</span>
+
+<span class="com">/* 主循环刷新状态文字 */</span>
+<span class="kw">if</span> (state == <span class="num">1</span>)      <span class="fn">OLED_ShowChinese</span>(<span class="num">72</span>, <span class="num">16</span>, <span class="str">"正转"</span>);
+<span class="kw">else if</span> (state == <span class="num">2</span>) <span class="fn">OLED_ShowChinese</span>(<span class="num">72</span>, <span class="num">16</span>, <span class="str">"反转"</span>);
+<span class="kw">else</span>                <span class="fn">OLED_ShowChinese</span>(<span class="num">72</span>, <span class="num">16</span>, <span class="str">"停止"</span>);</pre>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"第一行…第二行…"</strong> — 直接给出界面布局，AI 据此计算坐标（中文16×16，5字标题居中x=24，标签+冒号占72px，状态从x=72开始）</li>
+          <li><strong>固定内容开机画一次</strong> — 标题"电机控制系统"和标签"运行状态:"不变，开机画一次即可。主循环只刷新变化的状态文字，这是<strong>显示效率优化</strong></li>
+          <li>AI 主动<strong>验证字库</strong>，确认所有汉字都有字模不会乱码。这种前置检查避免了运行时才发现缺字的问题</li>
+        </ul>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一步建立了<strong>人机界面</strong>的基本框架：固定内容（标题/标签）开机绘制，动态内容（状态文字）循环刷新。
+           学生应理解：OLED 显示的本质是往显存写数据再 Update 上屏，固定内容不需要每帧重写，只刷新变化的部分即可。
+           这种"静态画一次 + 动态循环刷"的策略贯穿后续所有显示设计。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <div class="step-badge">4</div>
+      <div>
+        <div class="step-title">设计点动控制（按下驱动，放开停止）</div>
+        <div class="step-goal">目标：用电平检测实现点动——按住转动，松开停止</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"设计点动控制（手动模式），按下正转键正转，放开惯性停止。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>用 <code>Key_Sx_Down()</code> 电平检测：返回1=当前按住，0=未按住</li>
+              <li>S4 按住→正转，S6 按住→反转，都不按或都按→惯性停止</li>
+              <li>与自动模式的差异：自动用 Released（按一下切换），点动用 Down（按住有效）</li>
+            </ul>
+            <pre><span class="com">/* 点动模式：电平检测 */</span>
+<span class="kw">unsigned char</span> s4 = <span class="fn">Key_S4_Down</span>();
+<span class="kw">unsigned char</span> s6 = <span class="fn">Key_S6_Down</span>();
+<span class="kw">if</span> (s4 == <span class="num">1</span> && s6 == <span class="num">1</span>) {      <span class="com">/* 同时按下 → 停止 */</span>
+    <span class="fn">Motor_Coast</span>();  state = <span class="num">0</span>;
+}
+<span class="kw">else if</span> (s4 == <span class="num">1</span>) {            <span class="com">/* 按住S4 → 正转 */</span>
+    <span class="fn">Motor_Forward</span>(); state = <span class="num">1</span>;
+}
+<span class="kw">else if</span> (s6 == <span class="num">1</span>) {            <span class="com">/* 按住S6 → 反转 */</span>
+    <span class="fn">Motor_Reverse</span>(); state = <span class="num">2</span>;
+}
+<span class="kw">else</span> {                        <span class="com">/* 都没按 → 停止 */</span>
+    <span class="fn">Motor_Coast</span>();  state = <span class="num">0</span>;
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"按下…放开…"</strong> — 这个描述精确对应电平检测：按下=Down()返回1，放开=返回0。AI 准确选择了 <code>Key_Sx_Down()</code> 而非 Released</li>
+          <li><strong>同时按下处理</strong> — AI 主动加了 <code>s4 && s6</code> 的判断，两个方向键同时按住时强制停止。这是简单的互锁保护，避免驱动逻辑矛盾</li>
+          <li><strong>else 分支惯性停止</strong> — 都没按时执行 Motor_Coast()。这意味着主循环每帧都在判断：按住就驱动，松开就停。这就是"点动"的精髓</li>
+        </ul>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一步的核心是<strong>两种按键检测方式的对比</strong>。自动模式用 Released（放开事件，按一下切换状态），
+           点动模式用 Down（电平检测，按住有效松开停止）。学生应动手对比：同一个 S4 键，在自动模式下"按一下正转一直转"，
+           在点动模式下"按住才转松开就停"。这就是<strong>交互模式</strong>的差异——同一个硬件，不同的软件逻辑，完全不同的操作体验。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <div class="step-badge">5</div>
+      <div>
+        <div class="step-title">整合双模式（S7 切换自动/点动）</div>
+        <div class="step-goal">目标：S7 切换两种模式，OLED 第三行显示当前模式</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"整合自动和点动两种模式，S7 切换模式，第三行显示模式，加工程安全约束：不能直接换向、运动时不能切换模式、多键互锁。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>新增 <code>mode</code> 变量：1=自动，0=点动；S7 放开事件翻转 mode</li>
+              <li>主循环按 mode 分发：<code>if (mode==1)</code> 走自动逻辑，<code>else</code> 走点动逻辑</li>
+              <li>第三行显示"当前模式：自动/点动"</li>
+              <li>三条工程约束：① 方向互锁 ② state==0 才能切模式 ③ 同时按下互锁</li>
+            </ul>
+            <pre><span class="com">/* S7 切换模式：仅停止时可切换 */</span>
+<span class="kw">if</span> (<span class="fn">Key_S7_Released</span>() == <span class="num">1</span>) {
+    <span class="kw">if</span> (state == <span class="num">0</span>) {            <span class="com">/* ← 工程约束：运动中不能切 */</span>
+        mode = !mode;
+    }
+}
+
+<span class="com">/* 按 mode 分发控制逻辑 */</span>
+<span class="kw">if</span> (mode == <span class="num">1</span>) { ... }  <span class="com">/* 自动模式 */</span>
+<span class="kw">else</span> { ... }          <span class="com">/* 点动模式 */</span></pre>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"整合…S7切换…加工程安全约束"</strong> — 一句话包含三个需求：整合、切换、约束。AI 分三条实现：mode 变量、S7 逻辑、三条 if 检查</li>
+          <li><strong>两个状态变量</strong> — <code>mode</code>（管"用哪套逻辑"）和 <code>state</code>（管"电机当前状态"）。AI 准确理解了这两个变量的独立性，没有混淆</li>
+          <li><strong>三条约束一次给全</strong> — 用户直接列出三条工程约束，AI 逐条翻译成 if 条件。这种"需求清单"式的描述让 AI 不遗漏</li>
+        </ul>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一步是<strong>状态机</strong>的进阶。程序现在有两个独立状态变量：<code>mode</code> 和 <code>state</code>。
+           主循环先看 mode 决定走哪套逻辑，再看 state 决定能否执行操作。学生应理解：① <strong>模式分发</strong>——
+           用 if-else 按 mode 走不同分支，是状态机的典型结构；② <strong>工程约束</strong>——"运动中不能切模式"
+           翻译成 <code>if (state==0)</code>，"不能直接换向"翻译成 <code>if (state != 2)</code>，业务规则变成 if 条件。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <div class="step-badge">6</div>
+      <div>
+        <div class="step-title">简化版 → 工程约束版迭代</div>
+        <div class="step-goal">目标：先去约束理解核心，再加回约束学习工程</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问（简化）</div>
+          <div class="dialog-content">
+            <div class="quote">"太复杂了，先做简化版，不考虑工程约束。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>去掉三处安全检查：S7 直接翻转 mode、方向键直接执行、点动用简单 if-else if-else</li>
+              <li>保留核心：mode 和 state 两个标志位构成的状态机</li>
+              <li>代码量减少约 30%，逻辑更直白，适合初学者理解状态机流转</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问（加回约束）</div>
+          <div class="dialog-content">
+            <div class="quote">"现在加回工程安全约束。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>逐条加回：① <code>if (state==0)</code> 才能切模式 ② <code>if (state!=2)</code> 才能正转 ③ <code>s4&&s6</code> 同时按下停止</li>
+              <li>每条约束都加注释解释"为什么"——不能直接换向（避免大电流）、运动中不能切模式（避免失控）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"太复杂了，先做简化版"</strong> — 这是<strong>教学策略的关键决策</strong>。初学者面对状态机+工程约束会注意力分散，先去约束理解核心，再加约束学工程。AI 立即执行，不"坚持己见"</li>
+          <li><strong>"现在加回工程安全约束"</strong> — 理解核心后，一句话加回全部约束。AI 逐条补充并注释解释每条的意义。这种<strong>先减后加</strong>的教学节奏由用户掌控</li>
+          <li><strong>简化版 vs 工程版对比</strong> — 简化版 S7 直接翻转 mode，工程版加 <code>if(state==0)</code>。学生通过对比能清楚看到"约束就是加 if 检查"，消除对"工程约束"的畏惧</li>
+        </ul>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一步展示了<strong>简化优先的教学策略</strong>。面对复杂系统，先去掉约束让学员理解核心状态机流转，
+           再逐步加回约束学习工程思维。这比一步到位给出完整工程代码更有效——学员不会"一上来就懵"。
+           学生应理解：工程约束的本质就是<strong>加 if 检查</strong>——"运动中不能切模式"就是 <code>if(state==0)</code>，
+           "不能直接换向"就是 <code>if(state!=2)</code>。业务规则 → if 条件，这就是编程。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 最终成果 -->
+  <div class="card" id="result">
+    <h2>九、最终项目成果展示</h2>
+    <h3>9.1 模块架构</h3>
+    <table>
+      <tr><th>文件</th><th>职责</th><th>主要内容</th></tr>
+      <tr><td>hardware/motor.h</td><td>电机接口声明</td><td>Motor_Init/Forward/Reverse/Coast/Brake</td></tr>
+      <tr><td>hardware/motor.c</td><td>电机端口实现</td><td>sbit 定义 P4.6/P3.7/P4.7，动作顺序控制</td></tr>
+      <tr><td>hardware/key.h / key.c</td><td>按键模块</td><td>Released（放开事件）+ Down（电平检测）</td></tr>
+      <tr><td>user/main.c</td><td>主程序</td><td>双模式状态机 + 工程约束 + OLED显示</td></tr>
+    </table>
+
+    <h3>9.2 状态变量</h3>
+    <table>
+      <tr><th>变量</th><th>含义</th><th>取值</th></tr>
+      <tr><td><code>mode</code></td><td>控制模式</td><td>1=自动，0=点动</td></tr>
+      <tr><td><code>state</code></td><td>电机状态</td><td>0=停止，1=正转，2=反转</td></tr>
+    </table>
+
+    <h3>9.3 三条工程安全约束</h3>
+    <table>
+      <tr><th>约束</th><th>代码实现</th><th>工程意义</th></tr>
+      <tr><td>不能直接换向</td><td><code>if (state != 2)</code> 才正转</td><td>避免带电切换方向产生大电流</td></tr>
+      <tr><td>运动中不能切模式</td><td><code>if (state == 0)</code> 才翻转 mode</td><td>避免运动中切换控制方式导致失控</td></tr>
+      <tr><td>多键互锁</td><td><code>if (s4 && s6)</code> 强制停止</td><td>同时按正反转键时保护电机</td></tr>
+    </table>
+
+    <h3>9.4 操作流程示例</h3>
+    <table>
+      <tr><th>步骤</th><th>操作</th><th>屏幕变化</th></tr>
+      <tr><td>开机</td><td>—</td><td>运行状态：停止 / 当前模式：自动</td></tr>
+      <tr><td>按 S4</td><td>正转</td><td>运行状态：正转</td></tr>
+      <tr><td>按 S6</td><td>尝试反转</td><td>无效（正转中不能直接换向）</td></tr>
+      <tr><td>按 S5</td><td>停止</td><td>运行状态：停止</td></tr>
+      <tr><td>按 S7</td><td>切点动</td><td>当前模式：点动</td></tr>
+      <tr><td>按住 S4</td><td>点动正转</td><td>运行状态：正转（松开即停）</td></tr>
+    </table>
+  </div>
+
+  <!-- 经验总结 -->
+  <div class="card" id="summary">
+    <h2>十、AI 对话经验总结</h2>
+    <h3>10.1 有效的提问模式</h3>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <h4>📌 模块化开头</h4>
+        <p>"加入电机控制模块" — AI 自动 .h/.c 分离，建立分层架构</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 明确引脚</h4>
+        <p>"PWM=P4.6, DIR=P3.7" — 指定引脚，避免冲突</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 指定检测方式</h4>
+        <p>"放开事件检测" vs "按下…放开…" — 选 Released 还是 Down</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 描述界面布局</h4>
+        <p>"第一行…第二行…" — AI 自动计算坐标和字库</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 简化优先</h4>
+        <p>"太复杂，先简化" — 去约束理解核心，AI 立即执行</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 逐条加约束</h4>
+        <p>"加回工程约束" — AI 逐条补充并注释解释</p>
+      </div>
+    </div>
+
+    <h3>10.2 AI 协作的优势与局限</h3>
+    <table>
+      <tr><th>方面</th><th>AI 的优势</th><th>需要注意的局限</th></tr>
+      <tr>
+        <td>模块设计</td>
+        <td>自动 .h/.c 分离，sbit 定义端口，动作顺序符合工程规范</td>
+        <td>需用户指定引脚，AI 不会自行分配（避免冲突）</td>
+      </tr>
+      <tr>
+        <td>状态机</td>
+        <td>引入 mode/state 变量，按模式分发逻辑，结构清晰</td>
+        <td>复杂约束需用户分条列出，AI 不会主动"猜"业务规则</td>
+      </tr>
+      <tr>
+        <td>显示设计</td>
+        <td>固定内容画一次+动态循环刷，自动验证字库</td>
+        <td>缺字时需用户授权"做字库"，AI 才会主动生成字模</td>
+      </tr>
+      <tr>
+        <td>教学简化</td>
+        <td>能按指令去掉/加回约束，保留核心逻辑</td>
+        <td>需用户判断"何时简化何时加回"，AI 不会自行决定教学节奏</td>
+      </tr>
+    </table>
+
+    <h3>10.3 给学生的建议</h3>
+    <div class="insight-box">
+      <div class="insight-title">📝 四条核心建议</div>
+      <ul>
+        <li><strong>建议一：先模块后系统</strong> — 电机驱动独立成模块，main 只调用接口。不要把端口操作散在 main 里，这是"高内聚低耦合"的入门</li>
+        <li><strong>建议二：理解两种检测方式</strong> — Released（放开事件，按一下切换）和 Down（电平检测，按住有效）是两种根本不同的交互。自动模式用前者，点动模式用后者</li>
+        <li><strong>建议三：状态机=变量+分发</strong> — mode 和 state 两个变量，if-else 按 mode 分发逻辑，这就是状态机。不要畏惧"状态机"这个词，它就是"看变量走不同分支"</li>
+        <li><strong>建议四：工程约束就是加 if</strong> — "不能直接换向"就是 <code>if(state!=2)</code>，"运动中不能切模式"就是 <code>if(state==0)</code>。业务规则变成 if 条件，这就是工程编程。先理解核心再加约束，不要一上来就追求"完整工程版"</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    单片机打卡天天练 · 电机控制双模式系统 · Step-by-Step 讲义<br>
+    STC15F2K60S2 + Keil C51 + OLED 128×64 · 自动/点动双模式控制
+  </footer>
+
+</div>
+</body>
+</html>

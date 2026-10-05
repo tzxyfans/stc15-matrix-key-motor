@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单片机打卡天天练 · 矩阵按键控制电机 · Step-by-Step 讲义</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    line-height: 1.75;
+    color: #2c3e50;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf3 100%);
+    scroll-behavior: smooth;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+
+  header.hero {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3a7bd5 100%);
+    color: white; padding: 36px 40px; border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(30,60,114,0.25); margin-bottom: 28px;
+  }
+  header.hero h1 { font-size: 26px; margin-bottom: 8px; letter-spacing: 1px; }
+  header.hero .subtitle { font-size: 15px; opacity: 0.85; margin-bottom: 16px; }
+  header.hero .meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  header.hero .meta-tag {
+    background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 14px;
+    font-size: 13px; letter-spacing: 1px;
+  }
+
+  .card {
+    background: white; border-radius: 14px; padding: 28px 32px;
+    margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-size: 22px; color: #1e3c72; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 3px solid #3a7bd5;
+  }
+  .card h3 { font-size: 17px; color: #2a5298; margin: 18px 0 10px; }
+  .card p { margin-bottom: 10px; }
+  .card ul, .card ol { margin: 8px 0 12px 24px; }
+  .card li { margin-bottom: 6px; }
+
+  .step-card {
+    background: white; border-radius: 14px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
+  }
+  .step-header {
+    background: linear-gradient(135deg, #2a5298, #3a7bd5);
+    color: white; padding: 16px 32px; display: flex; align-items: center; gap: 14px;
+  }
+  .step-badge {
+    background: rgba(255,255,255,0.2); width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .step-header .step-title { font-size: 18px; font-weight: 600; }
+  .step-header .step-goal { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+  .step-body { padding: 24px 32px; }
+
+  .dialog-block { margin: 16px 0; }
+  .dialog-user {
+    background: #e8f4fd; border-left: 4px solid #3a7bd5;
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin-bottom: 12px;
+  }
+  .dialog-ai {
+    background: #f0f9f0; border-left: 4px solid #52c41a;
+    padding: 14px 18px; border-radius: 0 10px 10px 0;
+  }
+  .dialog-label {
+    font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .dialog-user .dialog-label { color: #2a5298; }
+  .dialog-ai .dialog-label { color: #389e0d; }
+  .dialog-content { font-size: 14px; color: #333; }
+  .dialog-content .quote {
+    background: rgba(0,0,0,0.04); padding: 10px 14px; border-radius: 8px;
+    font-style: italic; margin-top: 6px; border: 1px dashed #ccc;
+  }
+
+  .tip-box {
+    background: #fffbe6; border: 2px solid #ffe58f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .tip-box .tip-title {
+    color: #d48806; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tip-box ul { margin: 6px 0 0 20px; }
+
+  .insight-box {
+    background: #f6ffed; border: 2px solid #b7eb8f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .insight-box .insight-title {
+    color: #389e0d; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  pre {
+    background: #282c34; color: #abb2bf; padding: 16px 20px; border-radius: 10px;
+    font-family: "Consolas", "Courier New", monospace; font-size: 13px;
+    overflow-x: auto; margin: 12px 0; line-height: 1.5;
+  }
+  pre .kw { color: #c678dd; }
+  pre .str { color: #98c379; }
+  pre .com { color: #5c6370; font-style: italic; }
+  pre .fn { color: #61afef; }
+  pre .num { color: #d19a66; }
+  code {
+    background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+    font-family: "Consolas", monospace; font-size: 13px; color: #c7254e;
+  }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px;
+  }
+  th, td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; }
+  th { background: #f0f4f8; color: #1e3c72; font-weight: 600; }
+  tr:nth-child(even) { background: #fafbfc; }
+
+  .oled-screen {
+    background: #1a1a2e; color: #00ff88; font-family: monospace; font-size: 15px;
+    padding: 20px 28px; border-radius: 10px; margin: 14px 0;
+    box-shadow: inset 0 0 20px rgba(0,255,136,0.1); line-height: 1.8;
+    border: 2px solid #333; white-space: pre;
+  }
+  .oled-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+
+  .flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .flow-item {
+    background: #e8f4fd; border: 2px solid #3a7bd5; border-radius: 8px;
+    padding: 6px 16px; font-size: 14px; color: #2a5298; font-weight: 500;
+  }
+  .flow-arrow { color: #3a7bd5; font-size: 20px; font-weight: bold; }
+
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .summary-item {
+    background: #f8f9fb; border-radius: 10px; padding: 16px 20px; border: 1px solid #e0e6ed;
+  }
+  .summary-item h4 { color: #2a5298; font-size: 15px; margin-bottom: 8px; }
+  .summary-item p { font-size: 13px; color: #555; }
+
+  .toc {
+    background: white; border-radius: 14px; padding: 24px 32px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .toc h2 { font-size: 20px; color: #1e3c72; margin-bottom: 14px; }
+  .toc ol { margin-left: 24px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: #3a7bd5; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  footer { text-align: center; padding: 20px; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <h1>矩阵按键控制电机 · Step-by-Step 讲义</h1>
+    <div class="subtitle">4×4 矩阵按键 + PCA PWM 调速 + OLED 中文显示 — 从模块创建到人机交互优化的渐进式开发</div>
+    <div class="meta-row">
+      <span class="meta-tag">单片机打卡天天练</span>
+      <span class="meta-tag">STC15F2K60S2</span>
+      <span class="meta-tag">矩阵按键 4×4</span>
+      <span class="meta-tag">自动/点动双模式</span>
+      <span class="meta-tag">面向初学者</span>
+    </div>
+  </header>
+
+  <div class="toc">
+    <h2>📋 讲义目录</h2>
+    <ol>
+      <li><a href="#overview">项目概述与最终效果</a></li>
+      <li><a href="#step1">Step 1 — 创建矩阵按键模块：逐行扫描法</a></li>
+      <li><a href="#step2">Step 2 — 非阻塞重构：从"卡死"到"边沿检测"</a></li>
+      <li><a href="#step3">Step 3 — 矩阵按键控制电机：自动/点动双模式</a></li>
+      <li><a href="#step4">Step 4 — 主循环结构重构：公共处理前置</a></li>
+      <li><a href="#step5">Step 5 — 简化为 MatrixKey_Read 版本</a></li>
+      <li><a href="#step6">Step 6 — 数字键输入占空比</a></li>
+      <li><a href="#step7">Step 7 — 人机交互优化：输入预览分区显示</a></li>
+      <li><a href="#result">最终项目成果展示</a></li>
+      <li><a href="#summary">AI 对话经验总结</a></li>
+    </ol>
+  </div>
+
+  <!-- ========== 一、项目概述 ========== -->
+  <div class="card" id="overview">
+    <h2>一、项目概述与最终效果</h2>
+    <h3>1.1 项目背景</h3>
+    <p>本项目从一个已完成的 PWM 调速控制程序出发，通过 <strong>7 轮渐进式对话</strong>，
+       将独立按键控制升级为 <strong>4×4 矩阵按键控制</strong>，实现了自动/点动双模式电机控制、
+       数字键占空比输入、OLED 中文人机交互等完整功能。</p>
+    <p>学习路径：独立按键 → 矩阵按键模块 → 非阻塞重构 → 电机控制 → 主循环优化 → 简化API → 数字输入 → 交互优化</p>
+
+    <h3>1.2 最终实现的按键功能</h3>
+    <table>
+      <tr><th>按键</th><th>功能</th><th>说明</th></tr>
+      <tr><td><strong>A</strong></td><td>模式切换</td><td>自动 ↔ 点动，仅在电机停止时可切换</td></tr>
+      <tr><td><strong>B</strong></td><td>正转/停止</td><td>自动模式：复用（按一次切换）；点动模式：按住正转、松开停</td></tr>
+      <tr><td><strong>C</strong></td><td>反转/停止</td><td>同B，互锁保护（不能从正转直接切反转）</td></tr>
+      <tr><td><strong>D</strong></td><td>参数确定</td><td>确认数字键输入的占空比（输入0则不变）</td></tr>
+      <tr><td><strong>*</strong></td><td>占空比 +1</td><td>上限100，运行中立即生效</td></tr>
+      <tr><td><strong>#</strong></td><td>占空比 -1</td><td>下限1，运行中立即生效</td></tr>
+      <tr><td><strong>0~9</strong></td><td>占空比输入</td><td>保留最近两位数字，第三行最右侧预览，按D确认</td></tr>
+    </table>
+
+    <h3>1.3 最终 OLED 显示效果</h3>
+    <div class="oled-label">OLED 128×64 中文显示</div>
+    <div class="oled-screen">    电机控制
+模式:自动
+占空比:050%        53
+状态:停止</div>
+    <p style="font-size:13px;color:#888;">左侧"050%"为当前占空比，最右侧"53"为数字键输入预览（按D确认后消隐）</p>
+  </div>
+
+  <!-- ========== Step 1 ========== -->
+  <div class="step-card" id="step1">
+    <div class="step-header">
+      <div class="step-badge">1</div>
+      <div>
+        <div class="step-title">创建矩阵按键模块：逐行扫描法</div>
+        <div class="step-goal">目标：从独立按键升级到 4×4 矩阵按键，掌握行列扫描原理</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            开启矩阵按键新学习内容。开发板跳线 J5 必须短接到矩阵按键侧。
+            <div class="quote">模块命名为 matrix_key（与独立按键 key 区分），无键返回 KEY_NONE(0xFF)</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            创建 matrix_key.h / matrix_key.c，采用逐行扫描法：<br>
+            ① 4条行线默认拉高 → ② 逐行拉低 → ③ 读4条列线 → ④ 某列为低则定位按键<br>
+            消抖10ms + 等待放开（阻塞式 do-while）
+          </div>
+        </div>
+      </div>
+
+      <h3>硬件接线</h3>
+      <table>
+        <tr><th>信号</th><th>引脚</th><th>方向</th></tr>
+        <tr><td>ROW1~ROW4</td><td>P3.0~P3.3</td><td>输出（逐行拉低扫描）</td></tr>
+        <tr><td>COL1</td><td>P4.4</td><td>输入</td></tr>
+        <tr><td>COL2</td><td>P4.2</td><td>输入</td></tr>
+        <tr><td>COL3</td><td>P3.5</td><td>输入</td></tr>
+        <tr><td>COL4</td><td>P3.4</td><td>输入</td></tr>
+      </table>
+
+      <h3>按键值表（code 存 Flash 省 RAM）</h3>
+      <pre><span class="com">// key_values[行][列]</span>
+<span class="kw">code unsigned char</span> key_values[4][4] = {
+    {<span class="str">'7'</span>,<span class="str">'8'</span>,<span class="str">'9'</span>,<span class="str">'A'</span>},  <span class="com">// ROW1</span>
+    {<span class="str">'4'</span>,<span class="str">'5'</span>,<span class="str">'6'</span>,<span class="str">'B'</span>},  <span class="com">// ROW2</span>
+    {<span class="str">'1'</span>,<span class="str">'2'</span>,<span class="str">'3'</span>,<span class="str">'C'</span>},  <span class="com">// ROW3</span>
+    {<span class="str">'*'</span>,<span class="str">'0'</span>,<span class="str">'#'</span>,<span class="str">'D'</span>}   <span class="com">// ROW4</span>
+};</pre>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：为什么用矩阵按键？</div>
+        <ul>
+          <li>16个按键只需8个IO（4行+4列），比独立按键省一半IO</li>
+          <li>"逐行扫描法"：每次只拉低一行，读列线状态定位按键</li>
+          <li><code>code</code> 关键字把不变的映射表放Flash，节省RAM</li>
+          <li><code>KEY_NONE=0xFF</code>：与任何合法键值（0x30~0x44）都不冲突</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✅ 本步成果</div>
+        <p>矩阵按键模块创建完成，编译通过。但此时用的是<strong>阻塞式扫描</strong>（do-while等待放开），为下一步重构埋下伏笔。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 2 ========== -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <div class="step-badge">2</div>
+      <div>
+        <div class="step-title">非阻塞重构：从"卡死"到"边沿检测"</div>
+        <div class="step-goal">目标：解决阻塞式扫描导致系统卡死的问题</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            阻塞式扫描有问题：按键一直按着会导致系统卡死，主循环无法执行其他任务。
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            采用 <strong>key_now / key_last 边沿检测法</strong>，拆成两个函数：<br>
+            ① <code>MatrixKey_Read()</code> — 纯扫描，立即返回，不消抖不等待<br>
+            ② <code>MatrixKey_Scan()</code> — 边沿检测 + 消抖，按一次只触发一次
+          </div>
+        </div>
+      </div>
+
+      <h3>边沿检测核心逻辑</h3>
+      <pre><span class="kw">unsigned char</span> <span class="fn">MatrixKey_Scan</span>(<span class="kw">void</span>)
+{
+    <span class="kw">static unsigned char</span> key_last = KEY_NONE;
+    <span class="kw">unsigned char</span> key_now = <span class="fn">MatrixKey_Read</span>();
+
+    <span class="com">/* 下降沿：上次无键 + 本次有键 = 刚按下 */</span>
+    <span class="kw">if</span> (key_now != KEY_NONE && key_last == KEY_NONE)
+    {
+        <span class="fn">DelayMs</span>(<span class="num">10</span>);              <span class="com">// 消抖</span>
+        key_now = <span class="fn">MatrixKey_Read</span>();
+        <span class="kw">if</span> (key_now != KEY_NONE) {
+            key_last = key_now;
+            <span class="kw">return</span> key_now;       <span class="com">// 返回键值</span>
+        }
+    }
+    key_last = key_now;
+    <span class="kw">return</span> KEY_NONE;            <span class="com">// 无事件</span>
+}</pre>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：边沿检测 vs 电平检测</div>
+        <ul>
+          <li><strong>电平检测</strong>：读当前状态，按住一直返回键值 → 适合点动控制</li>
+          <li><strong>边沿检测</strong>：检测状态变化（下降沿），按一次报一次 → 适合计数/切换</li>
+          <li><code>static</code> 局部变量跨调用保持值，是实现边沿检测的关键</li>
+          <li>非阻塞：不等待放开，主循环不会被卡死</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✅ 本步成果</div>
+        <p>矩阵按键模块改为非阻塞设计。<code>MatrixKey_Scan</code> 用于边沿检测场景，<code>MatrixKey_Read</code> 为内部纯扫描函数。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 3 ========== -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <div class="step-badge">3</div>
+      <div>
+        <div class="step-title">矩阵按键控制电机：自动/点动双模式</div>
+        <div class="step-goal">目标：复刻第二讲独立按键功能，改用矩阵按键实现自动/点动双模式</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            按键功能分配：A=模式切换，B=正转/停止，C=反转/停止，D=参数确定，*=占空比+1，#=占空比-1<br>
+            复刻第二讲功能：自动和点动两种模式，点动按住动松开停，自动按一次触发一次。OLED界面尽量用中文。
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            两种模式需要不同的检测方式：<br>
+            ① 自动模式 → <code>MatrixKey_Scan()</code> 边沿检测，按一次触发一次<br>
+            ② 点动模式 → <code>MatrixKey_GetState()</code> 电平检测，按住持续返回<br>
+            新增 <code>MatrixKey_GetState()</code> 函数（连续两次相同才稳定，实现消抖）
+          </div>
+        </div>
+      </div>
+
+      <h3>OLED 中文显示布局</h3>
+      <div class="oled-label">先检查字模表是否包含所需汉字</div>
+      <div class="oled-screen">    电机控制
+模式:自动
+占空比:050%
+状态:停止</div>
+      <p style="font-size:13px;color:#888;">字模表有"电机控制/模式/自动/点动/占空比/状态/停止/正转/反转"等全部所需汉字，只缺"矩/阵/键"三字，故标题用"电机控制"而非"矩阵按键控制"。</p>
+
+      <h3>点动模式实现（状态驱动）</h3>
+      <pre><span class="com">// 点动模式：按住B→正转，按住C→反转，其他→停止</span>
+<span class="kw">unsigned char</span> key_state = <span class="fn">MatrixKey_GetState</span>();
+
+<span class="kw">if</span> (key_state == <span class="str">'B'</span>) {
+    <span class="fn">Motor_Forward</span>();   <span class="com">// 按住正转</span>
+} <span class="kw">else if</span> (key_state == <span class="str">'C'</span>) {
+    <span class="fn">Motor_Reverse</span>();   <span class="com">// 按住反转</span>
+} <span class="kw">else</span> {
+    <span class="fn">Motor_Coast</span>();     <span class="com">// 松开即停</span>
+}</pre>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：互锁保护</div>
+        <ul>
+          <li>正转时按C忽略，反转时按B忽略 → 不能直接换向，必须先停止</li>
+          <li>模式切换只能在停止时进行 → 运行中按A无效（安全保护）</li>
+          <li>占空比调节运行中立即生效 → <code>Motor_SetSpeed(duty)</code></li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✅ 本步成果</div>
+        <p>自动/点动双模式实现完成，OLED中文显示，编译0错误。但此时点动模式调用了两个函数（GetState + Scan），结构不够清晰。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 4 ========== -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <div class="step-badge">4</div>
+      <div>
+        <div class="step-title">主循环结构重构：公共处理前置</div>
+        <div class="step-goal">目标：A、*、# 统一提到模式判别之前，MatrixKey_Scan 只调用一次</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            A、星、井 用 MatrixKey_Scan()，统一放在模式处理之前安排，然后再分别进到两种模式的判别和处理。
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            重构主循环：Scan 只调用一次，返回值同时用于公共处理和自动模式的 B/C 处理。<br>
+            代码量从 16390 降到 16063（合并了重复代码）。
+          </div>
+        </div>
+      </div>
+
+      <h3>重构后的主循环结构</h3>
+      <pre><span class="kw">while</span> (<span class="num">1</span>)
+{
+    <span class="kw">unsigned char</span> key_evt = <span class="fn">MatrixKey_Scan</span>();   <span class="com">// 只调用一次</span>
+
+    <span class="com">/* ---- 公共处理（模式判别之前）---- */</span>
+    <span class="kw">switch</span> (key_evt) {
+        <span class="kw">case</span> <span class="str">'A'</span>: <span class="com">/* 模式切换 */</span> <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="str">'*'</span>: <span class="com">/* 占空比+1 */</span> <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="str">'#'</span>: <span class="com">/* 占空比-1 */</span> <span class="kw">break</span>;
+    }
+
+    <span class="com">/* ---- 模式相关：只处理 B/C ---- */</span>
+    <span class="kw">if</span> (mode == MODE_AUTO) {
+        <span class="com">/* 复用 key_evt 边沿事件 */</span>
+    } <span class="kw">else</span> {
+        <span class="com">/* 点动：MatrixKey_Read() 电平检测 */</span>
+    }
+}</pre>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：代码结构优化</div>
+        <ul>
+          <li>公共逻辑前置 → 消除重复代码，减少code体积</li>
+          <li>Scan只调用一次 → 避免两次扫描间的状态不一致</li>
+          <li>模式分支只处理差异部分（B/C检测方式不同）→ 结构清晰</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 5 ========== -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <div class="step-badge">5</div>
+      <div>
+        <div class="step-title">简化为 MatrixKey_Read 版本</div>
+        <div class="step-goal">目标：去掉 MatrixKey_GetState 中间层，追求代码简洁</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            如果用 MatrixKey_Read 去掉static，用它替换掉 MatrixKey_GetState 函数会有什么影响？
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            主要影响是<strong>丢失消抖</strong>：按下/松开瞬间的抖动会穿透到电机控制，可能产生"哒哒"异响。<br>
+            但主循环10ms节拍与抖动5~10ms同量级，大部分时候没问题。<br>
+            追求简洁可以替换，追求干净则保留 GetState。
+          </div>
+        </div>
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">简洁一点，改成 MatrixKey_Read 版本吧</div>
+        </div>
+      </div>
+
+      <h3>两个函数对比</h3>
+      <table>
+        <tr><th></th><th>MatrixKey_Read</th><th>MatrixKey_GetState</th></tr>
+        <tr><td>消抖</td><td>无，原始扫描值直接返回</td><td>有，连续两次相同才更新</td></tr>
+        <tr><td>static变量</td><td>无（每次独立）</td><td>有 key_last + stable</td></tr>
+        <tr><td>代码量</td><td>更少</td><td>多一层封装</td></tr>
+      </table>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：简洁 vs 健壮的权衡</div>
+        <ul>
+          <li>教学项目追求简洁 → 去掉中间层，靠10ms主循环节拍隐式消抖</li>
+          <li>工程项目追求健壮 → 保留显式消抖，不依赖外部节拍</li>
+          <li>这是典型的<strong>设计权衡</strong>：没有绝对对错，看场景选择</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✅ 本步成果</div>
+        <p>删除 MatrixKey_GetState，MatrixKey_Read 改为公开函数。代码量再省29字节。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 6 ========== -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <div class="step-badge">6</div>
+      <div>
+        <div class="step-title">数字键输入占空比</div>
+        <div class="step-goal">目标：数字键0~9输入两位数占空比，D键确认</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            实现读取数字按键键值并整理成占空比参数。占空比保存最近输入的两位数，按下确定后整理成一个数值更新到duty变量。
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            用滚动缓冲公式：<code>input_buf = (input_buf % 10) * 10 + (key - '0')</code><br>
+            自动挤出最旧的位，保留最近两位。按D确认后 duty = input_buf。
+          </div>
+        </div>
+      </div>
+
+      <h3>滚动输入算法</h3>
+      <pre><span class="com">// 例：按5→05，再按3→53，再按7→37（挤出最旧的位）</span>
+<span class="kw">case</span> <span class="str">'0'</span>: <span class="kw">case</span> <span class="str">'1'</span>: ... <span class="kw">case</span> <span class="str">'9'</span>:
+    input_buf = (input_buf % <span class="num">10</span>) * <span class="num">10</span> + (key_evt - <span class="str">'0'</span>);
+    <span class="fn">ShowDutyNum</span>(input_buf);   <span class="com">// 预览</span>
+    <span class="kw">break</span>;
+
+<span class="kw">case</span> <span class="str">'D'</span>:
+    duty = input_buf;
+    <span class="fn">Motor_SetSpeed</span>(duty);     <span class="com">// 立即生效</span>
+    <span class="kw">break</span>;</pre>
+
+      <div class="flow-row">
+        <div class="flow-item">按5</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">input_buf=05</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">按3</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">input_buf=53</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">按D</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">duty=53</div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：滚动缓冲技巧</div>
+        <ul>
+          <li><code>(x % 10) * 10 + new</code>：取个位升到十位，再拼上新数字</li>
+          <li>不需要数组、不需要计数器，一个变量搞定两位滚动</li>
+          <li>这是嵌入式开发中常用的<strong>环形缓冲</strong>简化版</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 7 ========== -->
+  <div class="step-card" id="step7">
+    <div class="step-header">
+      <div class="step-badge">7</div>
+      <div>
+        <div class="step-title">人机交互优化：输入预览分区显示</div>
+        <div class="step-goal">目标：输入预览放第三行最右侧，确认后消隐，输入0则不变</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">👤 用户</div>
+          <div class="dialog-content">
+            把占空比输入的字符放在第三行最右侧。检测到数字按键按下就在这里显示最近两位数字。
+            按下确定键则更新为占空比数值，然后消隐掉。如果两位数结果是0，按下确定则占空比不变，直接消隐。
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI</div>
+          <div class="dialog-content">
+            分区显示：左侧"050%"为当前占空比，最右侧2位为输入预览。<br>
+            增加 <code>input_active</code> 标志位跟踪输入状态。<br>
+            D键：非0→更新duty，为0→不变，然后消隐预览区。<br>
+            A/*/#键：取消未确认输入，消隐预览区。
+          </div>
+        </div>
+      </div>
+
+      <h3>优化后的第三行布局</h3>
+      <div class="oled-screen">占空比:050%        53</div>
+      <p style="font-size:13px;color:#888;">X=0~88为占空比显示区，X=112~128为输入预览区，中间空白分隔</p>
+
+      <h3>D键确认逻辑</h3>
+      <pre><span class="kw">case</span> <span class="str">'D'</span>:
+    <span class="kw">if</span> (input_active) {
+        <span class="kw">if</span> (input_buf > <span class="num">0</span>) {           <span class="com">// 输入非0 → 更新占空比</span>
+            duty = input_buf;
+            <span class="fn">Motor_SetSpeed</span>(duty);
+            <span class="fn">ShowDutyNum</span>(duty);
+        }
+        <span class="com">/* input_buf == 0 时占空比不变 */</span>
+        <span class="fn">ClearInputNum</span>();         <span class="com">// 消隐输入预览</span>
+        input_active = <span class="num">0</span>;
+    }
+    <span class="kw">break</span>;</pre>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 知识点：人机交互设计原则</div>
+        <ul>
+          <li><strong>分区显示</strong>：当前值和输入预览分开，避免混淆</li>
+          <li><strong>实时预览</strong>：输入过程让用户看到正在输入什么</li>
+          <li><strong>安全默认</strong>：输入0时不改变当前值（避免误操作停机）</li>
+          <li><strong>可取消</strong>：切模式/微调时自动取消未确认的输入</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✅ 本步成果</div>
+        <p>人机交互优化完成。占空比值和输入预览分区显示，D键确认逻辑完善，编译0错误。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 最终成果 ========== -->
+  <div class="card" id="result">
+    <h2>最终项目成果展示</h2>
+
+    <h3>模块架构</h3>
+    <div class="flow-row">
+      <div class="flow-item">matrix_key.h/.c</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-item">motor.h/.c</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-item">OLED_STC15</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-item">main.c</div>
+    </div>
+
+    <h3>matrix_key 模块最终接口</h3>
+    <table>
+      <tr><th>函数</th><th>检测方式</th><th>用途</th></tr>
+      <tr><td><code>MatrixKey_Init()</code></td><td>—</td><td>初始化端口</td></tr>
+      <tr><td><code>MatrixKey_Scan()</code></td><td>边沿检测+消抖</td><td>自动模式（按一次触发一次）</td></tr>
+      <tr><td><code>MatrixKey_Read()</code></td><td>电平检测无消抖</td><td>点动模式（按住动松开停）</td></tr>
+    </table>
+
+    <h3>最终 OLED 显示效果</h3>
+    <div class="oled-label">自动模式 - 正转中</div>
+    <div class="oled-screen">    电机控制
+模式:自动
+占空比:050%
+状态:正转</div>
+
+    <div class="oled-label">点动模式 - 按住B键正转中</div>
+    <div class="oled-screen">    电机控制
+模式:点动
+占空比:050%
+状态:正转</div>
+
+    <div class="oled-label">数字键输入中（按5再按3，未按D）</div>
+    <div class="oled-screen">    电机控制
+模式:自动
+占空比:050%        53
+状态:停止</div>
+
+    <h3>编译结果</h3>
+    <pre><span class="com">Program Size: data=13.4 xdata=1247 code=16196</span>
+<span class="str">".\Objects\prj_2" - 0 Error(s), 19 Warning(s).</span></pre>
+    <p style="font-size:13px;color:#888;">19个L16警告均为未调用函数段（OLED高级函数、Key独立按键、Motor_Brake等），不影响运行。</p>
+  </div>
+
+  <!-- ========== 经验总结 ========== -->
+  <div class="card" id="summary">
+    <h2>AI 对话经验总结</h2>
+
+    <div class="summary-grid">
+      <div class="summary-item">
+        <h4>1. 渐进式开发</h4>
+        <p>从模块创建→非阻塞重构→电机控制→结构优化→简化API→数字输入→交互优化，每步都有明确目标，逐步叠加功能。</p>
+      </div>
+      <div class="summary-item">
+        <h4>2. 先问再做</h4>
+        <p>控制方案有多种可能时，先用question工具确认方案再动手。避免做完了才发现方向不对。</p>
+      </div>
+      <div class="summary-item">
+        <h4>3. 设计权衡明示</h4>
+        <p>简洁vs健壮（Read vs GetState）、公共前置vs模式内处理，把权衡利弊讲清楚让用户决策。</p>
+      </div>
+      <div class="summary-item">
+        <h4>4. 注释中的陷阱</h4>
+        <p>注释中写 A/*/# 会被C编译器当成注释结束符 */，改为"A、星、井"避免。这是C语言注释的经典坑。</p>
+      </div>
+      <div class="summary-item">
+        <h4>5. 字模表验证</h4>
+        <p>OLED中文显示前先检查字模表是否包含所需汉字。本项目缺"矩/阵/键"三字，标题改用"电机控制"。</p>
+      </div>
+      <div class="summary-item">
+        <h4>6. 消抖的本质</h4>
+        <p>消抖就是"连续多次读取相同才确认"。边沿检测用DelayMs(10)再确认，电平检测用连续两次相同。主循环节拍本身也是一种隐式消抖。</p>
+      </div>
+    </div>
+
+    <h3>关键技术点回顾</h3>
+    <table>
+      <tr><th>技术点</th><th>所在步骤</th><th>核心要义</th></tr>
+      <tr><td>逐行扫描法</td><td>Step 1</td><td>4行逐行拉低→读4列→定位按键，8个IO控制16键</td></tr>
+      <tr><td>边沿检测</td><td>Step 2</td><td>key_now/key_last比较，下降沿触发，按一次报一次</td></tr>
+      <tr><td>非阻塞设计</td><td>Step 2</td><td>不等待放开，每次调用立即返回，主循环不卡死</td></tr>
+      <tr><td>双模式控制</td><td>Step 3</td><td>自动用边沿（复用），点动用电平（按住动松开停）</td></tr>
+      <tr><td>公共处理前置</td><td>Step 4</td><td>消除重复代码，Scan只调用一次</td></tr>
+      <tr><td>滚动缓冲</td><td>Step 6</td><td>(x%10)*10+new，一个变量搞定两位滚动</td></tr>
+      <tr><td>分区显示</td><td>Step 7</td><td>当前值和输入预览分开，避免混淆</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    单片机打卡天天练 · 矩阵按键控制电机 · 2026-10-05<br>
+    STC15F2K60S2 + 4×4矩阵按键 + PCA PWM + OLED 128×64
+  </footer>
+
+</div>
+</body>
+</html>

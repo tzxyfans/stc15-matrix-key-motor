@@ -1,0 +1,20 @@
+# Keil 构建产物
+Listings/
+Objects/
+*.uvguix.*
+*.uvoptx
+build.log
+build_log.txt
+# 临时/杂项
+nul
+_extract.py
+_inject.py
+_style.txt
+_logo.txt
+_hero.txt
+_toc.txt
+_footer.txt
+# AI 工作区内部文件（不上传）
+.workbuddy/
+.arts/
+.codeartsdoer/

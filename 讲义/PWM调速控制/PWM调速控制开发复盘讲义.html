@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单片机打卡天天练 · PWM 调速控制开发复盘 · Step-by-Step 讲义</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    line-height: 1.75; color: #2c3e50;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf3 100%);
+    scroll-behavior: smooth;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+
+  header.hero {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3a7bd5 100%);
+    color: white; padding: 36px 40px; border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(30,60,114,0.25); margin-bottom: 28px;
+  }
+  header.hero h1 { font-size: 26px; margin-bottom: 8px; letter-spacing: 1px; }
+  header.hero .subtitle { font-size: 15px; opacity: 0.85; margin-bottom: 16px; }
+  header.hero .meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  header.hero .meta-tag {
+    background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 14px;
+    font-size: 13px; letter-spacing: 1px;
+  }
+
+  .card {
+    background: white; border-radius: 14px; padding: 28px 32px;
+    margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-size: 22px; color: #1e3c72; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 3px solid #3a7bd5;
+  }
+  .card h3 { font-size: 17px; color: #2a5298; margin: 18px 0 10px; }
+  .card p { margin-bottom: 10px; }
+  .card ul, .card ol { margin: 8px 0 12px 24px; }
+  .card li { margin-bottom: 6px; }
+
+  .step-card {
+    background: white; border-radius: 14px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
+  }
+  .step-header {
+    background: linear-gradient(135deg, #2a5298, #3a7bd5);
+    color: white; padding: 16px 32px; display: flex; align-items: center; gap: 14px;
+  }
+  .step-badge {
+    background: rgba(255,255,255,0.2); width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .step-header .step-title { font-size: 18px; font-weight: 600; }
+  .step-header .step-goal { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+  .step-body { padding: 24px 32px; }
+
+  .dialog-block { margin: 16px 0; }
+  .dialog-user {
+    background: #e8f4fd; border-left: 4px solid #3a7bd5;
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin-bottom: 12px;
+  }
+  .dialog-ai {
+    background: #f0f9f0; border-left: 4px solid #52c41a;
+    padding: 14px 18px; border-radius: 0 10px 10px 0;
+  }
+  .dialog-label {
+    font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .dialog-user .dialog-label { color: #2a5298; }
+  .dialog-ai .dialog-label { color: #389e0d; }
+  .dialog-content { font-size: 14px; color: #333; }
+  .dialog-content .quote {
+    background: rgba(0,0,0,0.04); padding: 10px 14px; border-radius: 8px;
+    font-style: italic; margin-top: 6px; border: 1px dashed #ccc;
+  }
+
+  .tip-box {
+    background: #fffbe6; border: 2px solid #ffe58f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .tip-box .tip-title {
+    color: #d48806; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tip-box ul { margin: 6px 0 0 20px; }
+
+  .insight-box {
+    background: #f6ffed; border: 2px solid #b7eb8f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .insight-box .insight-title {
+    color: #389e0d; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .warn-box {
+    background: #fff1f0; border: 2px solid #ffa39e; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .warn-box .warn-title {
+    color: #cf1322; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  pre {
+    background: #282c34; color: #abb2bf; padding: 16px 20px; border-radius: 10px;
+    font-family: "Consolas", "Courier New", monospace; font-size: 13px;
+    overflow-x: auto; margin: 12px 0; line-height: 1.5;
+  }
+  pre .kw { color: #c678dd; }
+  pre .str { color: #98c379; }
+  pre .com { color: #5c6370; font-style: italic; }
+  pre .fn { color: #61afef; }
+  pre .num { color: #d19a66; }
+  code {
+    background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+    font-family: "Consolas", monospace; font-size: 13px; color: #c7254e;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th, td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; }
+  th { background: #f0f4f8; color: #1e3c72; font-weight: 600; }
+  tr:nth-child(even) { background: #fafbfc; }
+
+  .oled-screen {
+    background: #1a1a2e; color: #00ff88; font-family: monospace; font-size: 15px;
+    padding: 20px 28px; border-radius: 10px; margin: 14px 0;
+    box-shadow: inset 0 0 20px rgba(0,255,136,0.1); line-height: 1.8;
+    border: 2px solid #333; white-space: pre;
+  }
+  .oled-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+
+  .flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .flow-item {
+    background: #e8f4fd; border: 2px solid #3a7bd5; border-radius: 8px;
+    padding: 6px 16px; font-size: 14px; color: #2a5298; font-weight: 500;
+  }
+  .flow-arrow { color: #3a7bd5; font-size: 20px; font-weight: bold; }
+
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .summary-item {
+    background: #f8f9fb; border-radius: 10px; padding: 16px 20px; border: 1px solid #e0e6ed;
+  }
+  .summary-item h4 { color: #2a5298; font-size: 15px; margin-bottom: 8px; }
+  .summary-item p { font-size: 13px; color: #555; }
+
+  .toc {
+    background: white; border-radius: 14px; padding: 24px 32px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .toc h2 { font-size: 20px; color: #1e3c72; margin-bottom: 14px; }
+  .toc ol { margin-left: 24px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: #3a7bd5; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  footer { text-align: center; padding: 20px; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <h1>PWM 调速控制开发复盘 · Step-by-Step 讲义</h1>
+    <div class="subtitle">从高级 PWM 发生器踩坑到 PCA 8 位 PWM 模块化 — 7 轮对话的渐进式学习</div>
+    <div class="meta-row">
+      <span class="meta-tag">单片机打卡天天练</span>
+      <span class="meta-tag">STC15F2K60S2 + PCA</span>
+      <span class="meta-tag">OLED 128×64</span>
+      <span class="meta-tag">面向初学者</span>
+      <span class="meta-tag">2026-10-04</span>
+    </div>
+  </header>
+
+  <div class="toc">
+    <h2>📋 讲义目录</h2>
+    <ol>
+      <li><a href="#overview">项目概述与最终效果</a></li>
+      <li><a href="#lessons">7 轮对话的教训与收获</a></li>
+      <li><a href="#step1">Step 1 — 开启 PWM 学习：高级 PWM 发生器踩坑</a></li>
+      <li><a href="#step2">Step 2 — 学习参考项目：改用 PCA 8 位 PWM</a></li>
+      <li><a href="#step3">Step 3 — 引脚归属调整：motor 模块统一管理</a></li>
+      <li><a href="#step4">Step 4 — CMOD 寄存器纠错：0x01 vs 0x02</a></li>
+      <li><a href="#step5">Step 5 — 加入按键控制：占空比调节与正反转</a></li>
+      <li><a href="#step6">Step 6 — 互锁保护与高位 0 消隐</a></li>
+      <li><a href="#step7">Step 7 — PCA 模块化重构：改一个宏切换引脚</a></li>
+      <li><a href="#summary">复盘总结</a></li>
+    </ol>
+  </div>
+
+  <!-- ========== 一、项目概述 ========== -->
+  <div class="card" id="overview">
+    <h2>一、项目概述与最终效果</h2>
+    <h3>1.1 项目背景</h3>
+    <p>在已完成的电机控制项目（限位互锁 + OLED 显示）基础上，开启 <strong>PWM 调速</strong> 新学习阶段。
+       目标：用 STC15F2K60S2 输出 20KHz PWM 方波驱动直流电机，OLED 显示频率/占空比/状态，
+       按键控制正反转与调速。经过 <strong>7 轮对话</strong>，从踩坑到模块化重构，完整走了一遍
+       "选型→纠错→功能扩展→工程化" 的开发流程。</p>
+
+    <h3>1.2 最终实现的功能</h3>
+    <table>
+      <tr><th>按键</th><th>引脚</th><th>功能</th></tr>
+      <tr><td><strong>S7</strong></td><td>P3.0</td><td>占空比 +1（范围 1~100）</td></tr>
+      <tr><td><strong>S6</strong></td><td>P3.1</td><td>占空比 −1（范围 1~100）</td></tr>
+      <tr><td><strong>S4</strong></td><td>P3.3</td><td>正转/停止 复用（反转时忽略，须先停止）</td></tr>
+      <tr><td><strong>S5</strong></td><td>P3.2</td><td>反转/停止 复用（正转时忽略，须先停止）</td></tr>
+    </table>
+
+    <h3>1.3 最终 OLED 显示效果</h3>
+    <div class="oled-label">正转状态，占空比 50%：</div>
+    <div class="oled-screen">        PWM调速
+频率:21.6KHz
+占空比: 50%
+状态:正转</div>
+
+    <h3>1.4 开发流程全景</h3>
+    <div class="flow-row">
+      <span class="flow-item">Step 1: 高级PWM踩坑</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 2: 改用PCA</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 3: 引脚归属</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 4: CMOD纠错</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 5: 按键控制</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 6: 互锁+消隐</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 7: 模块化</span>
+    </div>
+  </div>
+
+  <!-- ========== 二、教训与收获 ========== -->
+  <div class="card" id="lessons">
+    <h2>二、7 轮对话的教训与收获</h2>
+    <p>这 7 轮对话中，有 <strong>2 次踩坑</strong>、<strong>2 次用户纠错</strong>、<strong>3 次渐进扩展</strong>。
+       每一次都留下了值得记录的经验。</p>
+
+    <div class="warn-box">
+      <div class="warn-title">⚠️ 两次踩坑</div>
+      <ul>
+        <li><strong>踩坑 1（Step 1）</strong>：选了高级 PWM 发生器（PWM6→P4.6），但 STC15 手册是扫描版 PDF，寄存器位号无法程序化提取，靠推理写出的配置不确定 → <strong>教训：选硬件方案前先确认资料是否可读</strong></li>
+        <li><strong>踩坑 2（Step 4）</strong>：CMOD=0x01 以为是 CPS=001(SYSclk/2)，实际 CPS 在 bit3~1，0x01 是 ECF=1+CPS=000(SYSclk/12)，频率从 21.6KHz 掉到 3.6KHz → <strong>教训：寄存器位分布要查官方手册 SFR 表，不能凭直觉</strong></li>
+      </ul>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 两次用户纠错</div>
+      <ul>
+        <li><strong>纠错 1（Step 3）</strong>：用户指出 DIR/BRAKE 应该用 motor 模块已有引脚定义，不要在 main.c 重复定义 → <strong>收获：模块的引脚归属要统一，main 只调接口</strong></li>
+        <li><strong>纠错 2（Step 4）</strong>：用户核对手册发现 CMOD 位分布错误，要求认真核对 → <strong>收获：AI 写寄存器配置时必须标注位分布出处，方便用户核对</strong></li>
+      </ul>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-title">✨ 三次渐进扩展</div>
+      <ul>
+        <li><strong>Step 5</strong>：加入按键控制（占空比调节 + 正反转），状态机设计</li>
+        <li><strong>Step 6</strong>：加互锁保护（正转不能直接切反转）+ OLED 高位 0 消隐函数</li>
+        <li><strong>Step 7</strong>：PCA 模块化重构，改一个宏即可切换 CCP0/CCP1/CCP2</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== Step 1 ========== -->
+  <div class="step-card" id="step1">
+    <div class="step-header">
+      <div class="step-badge">1</div>
+      <div>
+        <div class="step-title">开启 PWM 学习：高级 PWM 发生器踩坑</div>
+        <div class="step-goal">目标：输出 20KHz PWM 方波驱动直流电机，简单 demo，覆盖 main 程序</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"开启 PWM 调速新学习内容，20KHz，简单 demo，覆盖 main 程序。特别讲清楚 PWM 的寄存器参数初始化和使用控制逻辑。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>选择了 STC15 的<strong>高级 PWM 发生器</strong>（PWM6 通道 → P4.6 引脚）</li>
+              <li>需要配置 xdata 扩展空间寄存器（PWMCKS/PWMC/PWM6T1/PWM6T2/PWM6CR/PWMCR）</li>
+              <li>需要 P_SW2 EAXFR=1 开启扩展访问</li>
+              <li>但 STC15 手册是<strong>扫描版 PDF</strong>，寄存器位号无法程序化提取，靠推理写配置</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户反馈</div>
+          <div class="dialog-content">
+            <div class="quote">"学习不够成功，给你一个参考项目 G:\25dpj\program\pwm\lesson3_motor，认真学习后按其方式重写。"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn-box">
+        <div class="warn-title">⚠️ 踩坑分析</div>
+        <ul>
+          <li><strong>根因</strong>：选硬件方案前没确认资料可读性。STC15 手册扫描版无法提取寄存器位号，靠推理的配置不可靠</li>
+          <li><strong>教训</strong>：STC15 有两套 PWM 硬件（高级 PWM 发生器 + PCA），<strong>PCA 寄存器全在 sfr 空间</strong>，不需要 EAXFR，配置更简单确定</li>
+          <li><strong>正确做法</strong>：先看参考项目用什么，再决定方案。参考项目 lesson3_motor 用的是 PCA 模块1 的 8 位 PWM</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 2 ========== -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <div class="step-badge">2</div>
+      <div>
+        <div class="step-title">学习参考项目：改用 PCA 8 位 PWM</div>
+        <div class="step-goal">目标：按参考项目 lesson3_motor 的方式，用 PCA 模块1 输出 21.6KHz PWM</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 学习参考项目后的发现</div>
+          <div class="dialog-content">
+            <ul>
+              <li>参考项目用 <strong>PCA 模块1（CCP1=P1.0）的 8 位 PWM 模式</strong>，不是高级 PWM 发生器</li>
+              <li>PCA 时钟 = SYSclk/2 = 5.5296MHz，8 位 PWM 频率 = 5529600/256 = <strong>21600Hz ≈ 21.6KHz</strong></li>
+              <li>关键配置：<code>CCAPM1=0x42</code>(ECOM+PWM)，<code>PCA_PWM1=0x00</code>(8位PWM)</li>
+              <li>占空比：<code>CCAP1L = duty×256/100</code>，duty=50% → CCAP1L=128</li>
+              <li>寄存器全在 sfr 空间，<strong>不需要 P_SW2 EAXFR</strong> 扩展访问</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✨ PCA 8 位 PWM 原理（重点知识）</div>
+        <p>PCA 有一个 8 位计数器 CL（0→255 循环），每个模块有自己的比较值 CCAPnL。</p>
+        <pre><span class="com">// 8位PWM输出规则（PCA_PWM1 的 EBS[1:0]=00 时）：</span>
+<span class="com">// 当 CL &lt; CCAP1L 时，P1.0 输出低电平(驱动)</span>
+<span class="com">// 当 CL &gt;= CCAP1L 时，P1.0 输出高电平(不驱动)</span>
+<span class="com">// 低电平占空比 = CCAP1L / 256 = 电机驱动占空比</span>
+
+<span class="com">// 频率 = PCA时钟 / 256 = 5529600 / 256 = 21600Hz ≈ 21.6KHz</span>
+<span class="com">// 占空比50% → CCAP1L = 128 = 0x80</span></pre>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧</div>
+        <ul>
+          <li>用户提供参考项目是<strong>最高效的纠偏方式</strong>——不用描述该怎么做，直接给样板</li>
+          <li>AI 读取参考项目全部关键文件后，才动手重写，避免再次跑偏</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 3 ========== -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <div class="step-badge">3</div>
+      <div>
+        <div class="step-title">引脚归属调整：motor 模块统一管理</div>
+        <div class="step-goal">目标：DIR/BRAKE 用 motor 模块已有定义，PWM 引脚改用 CCP1，main 只调接口</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"DIR/BRAKE 这两个引脚用 motor 模块定义的引脚，同时把 motor 模块里定义的 PWM 引脚用 CCP1，PCA 模块1。你再修改一下"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>motor.c：PWM 引脚从 P4.6 改到 <strong>P1.0 (CCP1)</strong>，集成 PCA 8位PWM 配置</li>
+              <li>DIR=<strong>P0.4</strong>、BRAKE=<strong>P4.7</strong> 保留 motor 模块原有定义不变</li>
+              <li>motor.h：新增 <code>Motor_SetSpeed(duty)</code> / <code>Motor_GetSpeed()</code> 接口</li>
+              <li>main.c：去掉自己定义的 sbit DIR/BRAKE 和 PWM_Init，改为调用 motor 接口</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✨ 模块化设计原则</div>
+        <ul>
+          <li><strong>引脚归属唯一</strong>：每个引脚只在对应模块定义一次，main 不重复 sbit</li>
+          <li><strong>接口即文档</strong>：main 只看 motor.h 的函数声明，不关心内部寄存器</li>
+          <li><strong>配置与逻辑分离</strong>：PCA 寄存器配置在 motor.c，业务逻辑在 main.c</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 4 ========== -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <div class="step-badge">4</div>
+      <div>
+        <div class="step-title">CMOD 寄存器纠错：0x01 vs 0x02</div>
+        <div class="step-goal">目标：修正 CMOD 配置，使 PWM 频率真正为 21.6KHz</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"你程序里 CMOD = 0x01，但按 STC15F2K60S2 官方手册 SFR 表，CMOD 的 CPS 位在 B3~B1、ECF 在 B0，0x01 只置了 ECF，CPS=000 = 系统时钟/12。实际频率是 3.6KHz，不是 21.6KHz。你认真核对一下。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 核对结果</div>
+          <div class="dialog-content">
+            <p>用户完全正确。CMOD 位分布（官方手册）：</p>
+            <pre><span class="com">// bit7=CIDL  bit6~4=保留  bit3~1=CPS[2:0]  bit0=ECF</span>
+<span class="com">// CPS=001(SYSclk/2) 需把 bit1 置1 → CMOD=0x02</span>
+<span class="com">// 0x01 是 bit0=1(ECF=1) + CPS=000(SYSclk/12) → 3.6KHz ❌</span>
+<span class="com">// 0x02 是 bit1=1(CPS=001) + ECF=0 → 21.6KHz ✅</span></pre>
+            <p>参考项目 pca.c 用 <code>(cps & 0x07) &lt;&lt; 1</code> 把 CPS 放到 bit3~1，<code>PCA_CPS_SYSCLK_DIV2=0x01</code> 左移1位 = 0x02。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn-box">
+        <div class="warn-title">⚠️ 易错点永久记录</div>
+        <ul>
+          <li><strong>根因</strong>：把 CPS 枚举值（0x01）直接当 CMOD 值写，忽略了 CPS 在 bit3~1 而非 bit2~0</li>
+          <li><strong>正确写法</strong>：<code>CMOD = (cps & 0x07) &lt;&lt; 1</code>，或查表：SYSclk/12→0x00, SYSclk/2→<strong>0x02</strong>, SYSclk→0x08</li>
+          <li><strong>防范</strong>：写寄存器配置时，注释里必须标注位分布出处（"bit3~1=CPS, bit0=ECF"），方便核对</li>
+        </ul>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧</div>
+        <ul>
+          <li>用户<strong>查手册核对</strong>是最高质量的纠错——不是凭感觉，而是给出官方依据</li>
+          <li>AI 被纠错后应立即<strong>读取参考项目确认</strong>，而不是争辩</li>
+          <li>纠错后把易错点写入注释和记忆，避免重犯</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 5 ========== -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <div class="step-badge">5</div>
+      <div>
+        <div class="step-title">加入按键控制：占空比调节与正反转</div>
+        <div class="step-goal">目标：S6/S7 调占空比，S4/S5 正转/停止、反转/停止复用，第四行显示状态</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"S6/S7 按键作为调节占空比使用，每按下1次做加减1，在1-100范围。S4、S5 按键作为正转/停止、反转/停止的复用按键。第四行显示 状态：正转/反转/停止"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>用 <code>Key_Sx_Released()</code> 放开事件检测（按一次触发一次，避免长按连跳）</li>
+              <li>状态机三态：STOP / FWD / REV</li>
+              <li>S4：正转↔停止复用；S5：反转↔停止复用</li>
+              <li>局部刷新：只重画变化的行，不闪烁</li>
+              <li>主循环 <code>DelayMs(10)</code> 兼做按键消抖</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✨ 状态机设计</div>
+        <pre><span class="kw">#define</span> STATE_STOP   <span class="num">0</span>
+<span class="kw">#define</span> STATE_FWD    <span class="num">1</span>
+<span class="kw">#define</span> STATE_REV    <span class="num">2</span>
+
+<span class="com">// S4：正转/停止 复用</span>
+<span class="kw">if</span> (Key_S4_Released()) {
+    <span class="kw">if</span> (state == STATE_FWD) { Motor_Coast(); state = STATE_STOP; }
+    <span class="kw">else</span>                    { Motor_Forward(); state = STATE_FWD; }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 6 ========== -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <div class="step-badge">6</div>
+      <div>
+        <div class="step-title">互锁保护与高位 0 消隐</div>
+        <div class="step-goal">目标：正转不能直接切反转；OLED 数字高位 0 消隐</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"加上控制条件，在正转的时候不能立即反转，反之亦然。显示数字的时候，如果高位是0，就消隐掉这个0，把 OLED 显示模块的功能加一个函数进去。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li><strong>互锁</strong>：S4 在反转状态时忽略，S5 在正转状态时忽略，必须先停止再切换</li>
+              <li><strong>新函数</strong> <code>OLED_ShowNumNoZero(X,Y,Num,Len)</code>：高位连续0用空格代替，最后一位保留</li>
+              <li>效果：50→" 50"，1→"  1"，100→"100"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✨ 互锁逻辑</div>
+        <pre><span class="com">// S4：正转/停止 复用（互锁：反转时按 S4 忽略）</span>
+<span class="kw">if</span> (Key_S4_Released()) {
+    <span class="kw">if</span> (state == STATE_FWD)       { <span class="com">/* 正转→停止 */</span> }
+    <span class="kw">else if</span> (state == STATE_STOP) { <span class="com">/* 停止→正转 */</span> }
+    <span class="com">/* state == STATE_REV 时忽略 */</span>
+}</pre>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 工程思维</div>
+        <ul>
+          <li>互锁是<strong>安全保护</strong>：直接从正转切反转，电机承受反向电流冲击，可能损坏驱动管</li>
+          <li>高位0消隐是<strong>显示美化</strong>：避免"050"这种前导零，更符合阅读习惯</li>
+          <li>两个需求都是<strong>增量式</strong>叠加，不破坏已有功能</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 7 ========== -->
+  <div class="step-card" id="step7">
+    <div class="step-header">
+      <div class="step-badge">7</div>
+      <div>
+        <div class="step-title">PCA 模块化重构：改一个宏切换引脚</div>
+        <div class="step-goal">目标：支持 PCA 模块0/1/2 任意切换，使移植更便捷</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"设计程序并讲解使用 PCA 另外两组中的任意一组来控制电机，应该怎么调整程序，使得程序的模块化移植更便捷。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>motor.h 加宏 <code>#define MOTOR_PCA_MOD 1</code>（改 0 或 2 即切换模块）</li>
+              <li>motor.c 加 6 个 switch 封装函数（C51 sfr 不能取地址，只能 switch 分发）</li>
+              <li>引脚推挽配置也按模块号自动选择（PCA_ConfigPin）</li>
+              <li>讲解 CCPn_m 标记：n=模块号，m=引脚组号</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">✨ 模块化设计核心</div>
+        <p><strong>问题</strong>：C51 的 sfr 寄存器不能取地址（&CCAP1L 非法），不能用指针数组统一访问。</p>
+        <p><strong>解法</strong>：宏选模块 + switch 封装寄存器访问。</p>
+        <pre><span class="com">// motor.h — 改这一个宏即可切换</span>
+<span class="kw">#define</span> MOTOR_PCA_MOD  <span class="num">1</span>   <span class="com">// 0=CCP0(P1.1) 1=CCP1(P1.0) 2=CCP2(P3.7)</span>
+
+<span class="com">// motor.c — switch 封装，按模块号分发到对应 sfr</span>
+<span class="kw">static void</span> <span class="fn">PCA_wr_CCAPL</span>(<span class="kw">unsigned char</span> mod, <span class="kw">unsigned char</span> val) {
+    <span class="kw">switch</span> (mod) {
+        <span class="kw">case</span> <span class="num">0</span>: CCAP0L = val; <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="num">1</span>: CCAP1L = val; <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="num">2</span>: CCAP2L = val; <span class="kw">break</span>;
+    }
+}</pre>
+        <p>这是 STC15 多模块外设（PCA/串口/定时器）的<strong>通用移植手法</strong>。</p>
+      </div>
+
+      <h3>PCA 三模块对照表</h3>
+      <table>
+        <tr><th>模块</th><th>模式寄存器</th><th>比较值L</th><th>比较值H</th><th>PWM控制</th><th>引脚</th><th>推挽配置</th></tr>
+        <tr><td>0</td><td>CCAPM0 (0xDA)</td><td>CCAP0L (0xEA)</td><td>CCAP0H (0xFA)</td><td>PCA_PWM0 (0xF2)</td><td><strong>P1.1</strong></td><td>P1M0|=0x02</td></tr>
+        <tr><td>1</td><td>CCAPM1 (0xDB)</td><td>CCAP1L (0xEB)</td><td>CCAP1H (0xFB)</td><td>PCA_PWM1 (0xF3)</td><td><strong>P1.0</strong></td><td>P1M0|=0x01</td></tr>
+        <tr><td>2</td><td>CCAPM2 (0xDC)</td><td>CCAP2L (0xEC)</td><td>CCAP2H (0xFC)</td><td>PCA_PWM2 (0xF4)</td><td><strong>P3.7</strong></td><td>P3M0|=0x80</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== 总结 ========== -->
+  <div class="card" id="summary">
+    <h2>三、复盘总结</h2>
+
+    <div class="summary-grid">
+      <div class="summary-item">
+        <h4>📋 选型阶段</h4>
+        <p>先确认资料可读性再选方案。STC15 有两套 PWM 硬件，PCA 寄存器在 sfr 空间更简单。参考项目是最好的方案指南。</p>
+      </div>
+      <div class="summary-item">
+        <h4>🔧 配置阶段</h4>
+        <p>寄存器位分布必须查官方手册 SFR 表，不能凭直觉。CMOD 的 CPS 在 bit3~1，SYSclk/2 需写 0x02 不是 0x01。</p>
+      </div>
+      <div class="summary-item">
+        <h4>🎮 功能扩展</h4>
+        <p>增量式叠加：先加按键控制，再加互锁保护，再加显示美化。每步只改一个点，不破坏已有功能。</p>
+      </div>
+      <div class="summary-item">
+        <h4>📦 工程化</h4>
+        <p>宏选模块 + switch 封装寄存器，实现"改一个宏切换引脚"。引脚归属唯一，main 只调接口。</p>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 与 AI 协作的核心经验</div>
+      <ul>
+        <li><strong>给样板比描述需求更高效</strong>：Step 1 描述需求 AI 跑偏，Step 2 给参考项目立刻修正</li>
+        <li><strong>查手册核对是最强纠错</strong>：Step 4 用户查手册发现 CMOD 位分布错误，比凭感觉纠错更有说服力</li>
+        <li><strong>增量式描述避免重写</strong>：每次"在当前功能基础上加上…"，AI 在现有代码叠加而非重写</li>
+        <li><strong>纠错后写入注释和记忆</strong>：CMOD 易错点写入代码注释 + 记忆文件，避免重犯</li>
+        <li><strong>模块化是渐进的</strong>：从 main 硬编码 → motor 模块 → 宏选模块，逐步演进而非一步到位</li>
+      </ul>
+    </div>
+
+    <h3>最终代码结构</h3>
+    <pre><span class="com">user/main.c</span>          <span class="com">// 业务逻辑：按键扫描 + 状态机 + OLED 刷新</span>
+<span class="com">hardware/motor.c</span>       <span class="com">// PCA PWM 封装 + DIR/BRAKE 控制（MOTOR_PCA_MOD 选模块）</span>
+<span class="com">hardware/motor.h</span>       <span class="com">// 对外接口 + MOTOR_PCA_MOD 宏定义</span>
+<span class="com">hardware/key.c</span>         <span class="com">// S4~S7 按键检测（Released 放开事件）</span>
+<span class="com">hardware/OLED_STC15.c</span>  <span class="com">// OLED 显示（含 OLED_ShowNumNoZero 高位0消隐）</span></pre>
+  </div>
+
+  <footer>
+    单片机打卡天天练 · PWM 调速控制开发复盘 · 2026-10-04<br>
+    从高级 PWM 发生器踩坑到 PCA 8 位 PWM 模块化 — 7 轮对话的渐进式学习
+  </footer>
+
+</div>
+</body>
+</html>

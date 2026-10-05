@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单片机打卡天天练 · AI 对话驱动项目开发 · Step-by-Step 讲义</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    line-height: 1.75;
+    color: #2c3e50;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf3 100%);
+    scroll-behavior: smooth;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+
+  /* ========== 顶部 Banner ========== */
+  header.hero {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3a7bd5 100%);
+    color: white; padding: 36px 40px; border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(30,60,114,0.25); margin-bottom: 28px;
+  }
+  header.hero h1 { font-size: 26px; margin-bottom: 8px; letter-spacing: 1px; }
+  header.hero .subtitle { font-size: 15px; opacity: 0.85; margin-bottom: 16px; }
+  header.hero .meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  header.hero .meta-tag {
+    background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 14px;
+    font-size: 13px; letter-spacing: 1px;
+  }
+
+  /* ========== 通用卡片 ========== */
+  .card {
+    background: white; border-radius: 14px; padding: 28px 32px;
+    margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-size: 22px; color: #1e3c72; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 3px solid #3a7bd5;
+  }
+  .card h3 { font-size: 17px; color: #2a5298; margin: 18px 0 10px; }
+  .card p { margin-bottom: 10px; }
+  .card ul, .card ol { margin: 8px 0 12px 24px; }
+  .card li { margin-bottom: 6px; }
+
+  /* ========== Step 卡片 ========== */
+  .step-card {
+    background: white; border-radius: 14px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden;
+  }
+  .step-header {
+    background: linear-gradient(135deg, #2a5298, #3a7bd5);
+    color: white; padding: 16px 32px; display: flex; align-items: center; gap: 14px;
+  }
+  .step-badge {
+    background: rgba(255,255,255,0.2); width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .step-header .step-title { font-size: 18px; font-weight: 600; }
+  .step-header .step-goal { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+  .step-body { padding: 24px 32px; }
+
+  /* ========== 对话气泡 ========== */
+  .dialog-block { margin: 16px 0; }
+  .dialog-user {
+    background: #e8f4fd; border-left: 4px solid #3a7bd5;
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin-bottom: 12px;
+  }
+  .dialog-ai {
+    background: #f0f9f0; border-left: 4px solid #52c41a;
+    padding: 14px 18px; border-radius: 0 10px 10px 0;
+  }
+  .dialog-label {
+    font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .dialog-user .dialog-label { color: #2a5298; }
+  .dialog-ai .dialog-label { color: #389e0d; }
+  .dialog-content { font-size: 14px; color: #333; }
+  .dialog-content .quote {
+    background: rgba(0,0,0,0.04); padding: 10px 14px; border-radius: 8px;
+    font-style: italic; margin-top: 6px; border: 1px dashed #ccc;
+  }
+
+  /* ========== 技巧分析框 ========== */
+  .tip-box {
+    background: #fffbe6; border: 2px solid #ffe58f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .tip-box .tip-title {
+    color: #d48806; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tip-box ul { margin: 6px 0 0 20px; }
+
+  /* ========== 启示框 ========== */
+  .insight-box {
+    background: #f6ffed; border: 2px solid #b7eb8f; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .insight-box .insight-title {
+    color: #389e0d; font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ========== 代码块 ========== */
+  pre {
+    background: #282c34; color: #abb2bf; padding: 16px 20px; border-radius: 10px;
+    font-family: "Consolas", "Courier New", monospace; font-size: 13px;
+    overflow-x: auto; margin: 12px 0; line-height: 1.5;
+  }
+  pre .kw { color: #c678dd; }
+  pre .str { color: #98c379; }
+  pre .com { color: #5c6370; font-style: italic; }
+  pre .fn { color: #61afef; }
+  pre .num { color: #d19a66; }
+  code {
+    background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+    font-family: "Consolas", monospace; font-size: 13px; color: #c7254e;
+  }
+
+  /* ========== 表格 ========== */
+  table {
+    width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px;
+  }
+  th, td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; }
+  th { background: #f0f4f8; color: #1e3c72; font-weight: 600; }
+  tr:nth-child(even) { background: #fafbfc; }
+
+  /* ========== 效果展示框 ========== */
+  .oled-screen {
+    background: #1a1a2e; color: #00ff88; font-family: monospace; font-size: 15px;
+    padding: 20px 28px; border-radius: 10px; margin: 14px 0;
+    box-shadow: inset 0 0 20px rgba(0,255,136,0.1); line-height: 1.8;
+    border: 2px solid #333; white-space: pre;
+  }
+  .oled-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+
+  /* ========== 流程箭头 ========== */
+  .flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .flow-item {
+    background: #e8f4fd; border: 2px solid #3a7bd5; border-radius: 8px;
+    padding: 6px 16px; font-size: 14px; color: #2a5298; font-weight: 500;
+  }
+  .flow-arrow { color: #3a7bd5; font-size: 20px; font-weight: bold; }
+
+  /* ========== 总结框 ========== */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .summary-item {
+    background: #f8f9fb; border-radius: 10px; padding: 16px 20px; border: 1px solid #e0e6ed;
+  }
+  .summary-item h4 { color: #2a5298; font-size: 15px; margin-bottom: 8px; }
+  .summary-item p { font-size: 13px; color: #555; }
+
+  /* ========== 导航 ========== */
+  .toc {
+    background: white; border-radius: 14px; padding: 24px 32px; margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .toc h2 { font-size: 20px; color: #1e3c72; margin-bottom: 14px; }
+  .toc ol { margin-left: 24px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: #3a7bd5; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  footer { text-align: center; padding: 20px; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ========== 顶部 Banner ========== -->
+  <header class="hero">
+    <h1>AI 对话驱动项目开发 · Step-by-Step 讲义</h1>
+    <div class="subtitle">按键次数计数控制系统 — 从电平检测到状态机的渐进式开发</div>
+    <div class="meta-row">
+      <span class="meta-tag">单片机打卡天天练</span>
+      <span class="meta-tag">STC15 + Keil C51</span>
+      <span class="meta-tag">OLED 128×64</span>
+      <span class="meta-tag">面向初学者</span>
+      <span class="meta-tag">25机械12班</span>
+    </div>
+  </header>
+
+  <!-- ========== 目录 ========== -->
+  <div class="toc">
+    <h2>📋 讲义目录</h2>
+    <ol>
+      <li><a href="#overview">项目概述与最终效果</a></li>
+      <li><a href="#principles">与 AI 对话的核心原则</a></li>
+      <li><a href="#step1">Step 1 — 提出初始需求：从"电平检测"到"次数计数"</a></li>
+      <li><a href="#step2">Step 2 — 请求代码优化：让代码更适合教学</a></li>
+      <li><a href="#step3">Step 3 — 纠正优化方向：代码组织方式的调整</a></li>
+      <li><a href="#step4">Step 4 — 项目功能重构：计数控制系统</a></li>
+      <li><a href="#step5">Step 5 — 增量添加：启动 / 暂停控制</a></li>
+      <li><a href="#step6">Step 6 — 增量添加：加1 / 减1 切换控制</a></li>
+      <li><a href="#result">最终项目成果展示</a></li>
+      <li><a href="#summary">AI 对话经验总结</a></li>
+    </ol>
+  </div>
+
+  <!-- ========== 一、项目概述 ========== -->
+  <div class="card" id="overview">
+    <h2>一、项目概述与最终效果</h2>
+    <h3>1.1 项目背景</h3>
+    <p>本项目基于一个已有的单片机按键检测程序（能检测 S4~S7 四个按键的按下/松开状态并在 OLED 上显示）。
+       在一次完整的 AI 对话过程中，通过 <strong>6 轮渐进式对话</strong>，将这个简单的电平检测程序，
+       逐步演化为一个具备<strong>计数、清零、启停控制、加减切换</strong>的完整人机交互系统。</p>
+
+    <h3>1.2 最终实现的功能</h3>
+    <table>
+      <tr><th>按键</th><th>功能</th><th>说明</th></tr>
+      <tr><td><strong>S7</strong></td><td>计数键</td><td>每按一次计数 +1 或 −1（由方向决定，仅在"计数中"有效）</td></tr>
+      <tr><td><strong>S4</strong></td><td>清零键</td><td>按一次将计数归零（任何时候都有效）</td></tr>
+      <tr><td><strong>S5</strong></td><td>启动/暂停</td><td>复用键，每按一次切换工作状态</td></tr>
+      <tr><td><strong>S6</strong></td><td>加1/减1 切换</td><td>复用键，每按一次切换计数方向（仅在"已暂停"时可设置）</td></tr>
+    </table>
+
+    <h3>1.3 最终 OLED 显示效果</h3>
+    <div class="oled-label">计数中 + 加1模式：</div>
+    <div class="oled-screen">    计数控制系统
+记录次数：012
+计数中
+计数加1</div>
+    <div class="oled-label">暂停 + 减1模式：</div>
+    <div class="oled-screen">    计数控制系统
+记录次数：012
+已暂停
+计数减1</div>
+
+    <h3>1.4 开发流程全景</h3>
+    <div class="flow-row">
+      <span class="flow-item">Step 1: 增加次数检测</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 2: 代码优化</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 3: 调整结构</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 4: 功能重构</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 5: 启停控制</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">Step 6: 加减切换</span>
+    </div>
+  </div>
+
+  <!-- ========== 二、AI对话原则 ========== -->
+  <div class="card" id="principles">
+    <h2>二、与 AI 对话的核心原则</h2>
+    <p>在开始 Step-by-Step 讲解之前，先总结本项目中与 AI 对话的 <strong>5 条核心原则</strong>。
+       这些原则贯穿每一轮对话，是高效协作的基础。</p>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 五条核心原则</div>
+      <ul>
+        <li><strong>原则 1：明确受众</strong> — 开篇就告诉 AI "这是给初学者用的，逻辑要简单清晰"，AI 会自动避免引入指针、函数指针等高级概念</li>
+        <li><strong>原则 2：增量式描述</strong> — 每次只提一个新需求，用"在当前功能基础上继续加上…"开头，AI 会在现有代码上叠加而非重写</li>
+        <li><strong>原则 3：指定按键</strong> — 明确说"用 S5 按键实现"，避免 AI 自行分配引脚造成混乱</li>
+        <li><strong>原则 4：及时纠偏</strong> — 如果 AI 的优化方向不对（如引入了不想要的宏定义），直接说"暂时不用，恢复原先状态"，AI 会立即回退</li>
+        <li><strong>原则 5：要求附说明</strong> — AI 每次修改后都会输出"修改说明"，教师可直接用于课堂讲解</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== Step 1 ========== -->
+  <div class="step-card" id="step1">
+    <div class="step-header">
+      <div class="step-badge">1</div>
+      <div>
+        <div class="step-title">提出初始需求：从"电平检测"到"次数计数"</div>
+        <div class="step-goal">目标：在原有按键状态检测基础上，增加按下次数统计并显示</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"在当前程序的功能基础上，增加按键按下次数的检测，并在液晶屏幕上显示各按键的按下次数，超过100次则清零。请完成这个项目的改编设计，你这是给初学者进行引导式教学用的，逻辑要简单清晰。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>先<strong>阅读项目结构</strong>和所有源文件（main.c、key.c、key.h、OLED 驱动），理解现有代码</li>
+              <li>识别核心问题：原程序只检测<strong>电平</strong>（按下/松开），无法计数；需要新增<strong>按下事件</strong>检测（下降沿）</li>
+              <li>在 key.c 新增 <code>Key_S4_Pressed()</code> 等函数（下降沿状态机：上次松开 + 本次按下 = 按下事件）</li>
+              <li>在 main.c 增加计数变量，OLED 显示次数（布局：<code>S4:按下 N=012</code>）</li>
+              <li>输出完整的"修改说明"，解释改动思路和显示布局</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"在当前程序的功能基础上"</strong> — 这句话告诉 AI 不要重写，而是在现有代码上<strong>增量添加</strong>。AI 据此保留了原有按键检测函数，只新增了 Pressed 函数</li>
+          <li><strong>"给初学者进行引导式教学用的，逻辑要简单清晰"</strong> — 这句<strong>受众声明</strong>至关重要。AI 据此选择了最直白的 if-else 写法，而非函数指针数组等"高级"但难懂的方案</li>
+          <li><strong>"超过100次则清零"</strong> — 给出明确的数值边界，AI 直接用 <code>if (count == 100) count = 0;</code> 实现，无需追问</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>第一轮对话的关键是<strong>"把话说全"</strong>：做什么 + 给谁用 + 有什么约束。AI 不是人，不会"猜你的意思"，
+           但只要你描述清楚，它能比人更快地分析整个代码库并给出精准的修改方案。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 2 ========== -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <div class="step-badge">2</div>
+      <div>
+        <div class="step-title">请求代码优化：让代码更适合教学</div>
+        <div class="step-goal">目标：优化 main 函数，提出优化理由，要求针对初学者</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"对主程序main函数进行优化，提出优化的理由。注意是针对初学者来讲的。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <p>AI 提出了两个优化点：</p>
+            <ul>
+              <li><strong>优化一：宏定义消除"魔法数字"</strong> — 把 <code>100</code>、<code>3</code>、<code>20</code> 等裸数字改成 <code>#define COUNT_MAX 100</code>，理由："给数字起名字"，改阈值只改一处</li>
+              <li><strong>优化二：提取 Count_Add() 函数</strong> — 把 4 处重复的"count++; if(count==100) count=0;"封进函数，理由："重复代码提成函数"，用返回值赋回避免指针</li>
+            </ul>
+            <p>同时列出<strong>"不做哪些优化"</strong>表格：不用数组+循环（需函数指针过难）、不用局部变量替代全局（8051 栈有限），解释取舍理由。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"提出优化的理由"</strong> — 不仅要求改代码，还要求<strong>解释为什么</strong>。AI 输出了"优化理由（讲给学生听）"小节，用口语化表达如"给数字起名字"，而非抛"DRY 原则"等术语</li>
+          <li><strong>"针对初学者来讲的"</strong> — 再次强调受众。AI 据此控制了优化力度：做了宏定义和函数封装，但<strong>没有</strong>做数组+循环、函数指针等初学者看不懂的优化</li>
+          <li>AI 主动列出"不做哪些优化"的表格，这种<strong>取舍说明</strong>对教学非常有价值——让学生理解"好代码"不是越高级越好，而是越合适越好</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>向 AI 要"优化理由"而非只要"优化结果"，是教学场景的关键技巧。AI 生成的理由可以直接作为
+           课堂讲解素材。而强调"针对初学者"能让 AI 自动把握优化的"度"——既改进代码质量，又不引入
+           超出学生理解范围的抽象概念。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 3 ========== -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <div class="step-badge">3</div>
+      <div>
+        <div class="step-title">纠正优化方向：代码组织方式的调整</div>
+        <div class="step-goal">目标：去掉宏定义，改用"按功能阶段分组"的三段式结构</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"宏定义这个部分暂时不用，请恢复到原先的状态。把四个按键的检测按下事件归到一起，把四个按键的按下并放开事件归到一起，最后把按键次数的显示归到一起，按这个思路进行调整，你再修改一下"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>立即<strong>去掉宏定义和 Count_Add 函数</strong>，恢复裸数字写法</li>
+              <li>将主循环从"按按键分组"改为<strong>"按功能阶段分组"（三段式）</strong>：
+                <pre><span class="com">/* 第一阶段：四个按键的按下事件检测与计数 */</span>
+<span class="kw">if</span> (Key_S4_Released()==<span class="num">1</span>) { count_s4++; ... }
+<span class="kw">if</span> (Key_S5_Released()==<span class="num">1</span>) { count_s5++; ... }
+...
+
+<span class="com">/* 第二阶段：四个按键的当前状态显示 */</span>
+<span class="kw">if</span> (Key_S4_Down()==<span class="num">1</span>) { OLED_ShowChinese(..., <span class="str">"按下"</span>); } ...
+
+<span class="com">/* 第三阶段：四个按键的按下次数显示 */</span>
+OLED_ShowNum(<span class="num">88</span>, <span class="num">0</span>, count_s4, <span class="num">3</span>); ...</pre>
+              </li>
+              <li>输出优化理由："程序流程一眼看清"、"先处理数据再显示数据的分层思想"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"宏定义这个部分暂时不用，请恢复到原先的状态"</strong> — 这是<strong>及时纠偏</strong>的典范。AI 上一轮做的宏定义优化虽然"专业"，但教师认为对当前学生阶段不合适，一句话就让 AI 回退。AI 不会"坚持己见"，立即执行</li>
+          <li><strong>"把…归到一起"</strong> 重复三次 — 用<strong>排比句式</strong>精确描述期望的代码组织结构。AI 准确理解了"按功能分组"而非"按按键分组"的意图</li>
+          <li>这轮对话展示了 AI 协作的重要特性：<strong>你永远是决策者</strong>。AI 提建议，你定方向。不满意就直说，AI 会立刻调整</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这是 6 轮对话中<strong>最有教学价值的一轮</strong>。它展示了三件事：① AI 的优化建议可以拒绝；
+           ② 用排比句描述代码结构比说"重构"更有效；③ "按功能阶段分组"是嵌入式程序的基本架构思想——
+           先采集数据、再处理数据、最后显示数据，层次分明。学生应重点理解这种"三段式"组织方式。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 4 ========== -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <div class="step-badge">4</div>
+      <div>
+        <div class="step-title">项目功能重构：计数控制系统</div>
+        <div class="step-goal">目标：重构为 S7 计数 + S4 清零的计数控制系统，设计人机界面</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"对按键的检测应用进行项目功能重构。设计一个按键按下次数的计数控制系统。针对按键s7按下的次数进行计数，并在液晶上显示。能对当前计数数值进行清零控制，用S4键实现。对液晶屏做一个人机交互界面的简单设计。第一行显示计数控制系统，第二行显示记录次数。"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>发现字模库缺少"计、数、记、录、次、清、零"等汉字，<strong>主动用 Python + PIL 从系统宋体生成 16×16 点阵字模</strong>，插入 OLED_Data.c</li>
+              <li>重构 main.c：S7 计数、S4 清零，OLED 第一行标题"计数控制系统"，第二行"记录次数：012"</li>
+              <li>标题和标签开机只画一次，主循环只刷新数字部分（优化显示效率）</li>
+            </ul>
+            <pre><span class="com">/* 第一行：标题居中显示 */</span>
+OLED_ShowChinese(<span class="num">16</span>, <span class="num">0</span>, <span class="str">"计数控制系统"</span>);
+<span class="com">/* 第二行：标签 + 冒号 + 数字 */</span>
+OLED_ShowChinese(<span class="num">0</span>, <span class="num">16</span>, <span class="str">"记录次数"</span>);
+OLED_ShowString(<span class="num">64</span>, <span class="num">16</span>, <span class="str">":"</span>);
+OLED_ShowNum(<span class="num">72</span>, <span class="num">16</span>, count, <span class="num">3</span>);</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"第一行显示…第二行显示…"</strong> — 直接给出界面布局描述，AI 据此计算坐标（中文 16×16，数字 8×16），自动安排显示位置</li>
+          <li><strong>AI 主动解决字模缺失问题</strong> — 这是 AI 协作的突出优势。字模库缺字是个"隐藏问题"，用户可能都不知道。AI 发现后没有报错停下，而是<strong>自动生成字模数据</strong>并补充到字模库，让程序能编译通过</li>
+          <li>"功能重构"一词让 AI 理解这是<strong>整体重写</strong>而非增量修改，于是重新设计了 main.c 的结构和界面</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一轮展示了 AI 的<strong>自主解决问题</strong>能力。当遇到字模库缺字这种"卡点"时，AI 不是报错等待，
+          而是主动用工具生成字模数据。学生应理解：AI 不只是"写代码的打字员"，它还能分析问题、
+          调用工具、解决依赖。当然，最终字模是否正确还需要编译验证。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 5 ========== -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <div class="step-badge">5</div>
+      <div>
+        <div class="step-title">增量添加：启动 / 暂停控制</div>
+        <div class="step-goal">目标：S5 键切换启动/暂停，OLED 显示当前工作状态</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"在当前项目功能的基础上，继续加上启动计数和暂停计数的复用按键控制。用S5按键实现。并在液晶屏幕上显示当前人机交互工作状态：计数或暂停。请设计程序实现"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>新增状态变量 <code>unsigned char running = 1;</code>（1=计数中，0=已暂停）</li>
+              <li>S5 按下 → 翻转 running（toggle）；S7 按下 → 仅 running==1 时才 count++</li>
+              <li>第三行显示"计数中"或"已暂停"</li>
+              <li>发现缺"暂"字，再次用 Python 生成字模并补充</li>
+            </ul>
+            <pre><span class="com">/* S5：切换 启动/暂停 */</span>
+<span class="kw">if</span> (Key_S5_Released() == <span class="num">1</span>) {
+    <span class="kw">if</span> (running == <span class="num">1</span>) { running = <span class="num">0</span>; }  <span class="com">/* 计数中 → 暂停 */</span>
+    <span class="kw">else</span>            { running = <span class="num">1</span>; }  <span class="com">/* 暂停 → 计数中 */</span>
+}
+<span class="com">/* S7：仅在计数中才 +1 */</span>
+<span class="kw">if</span> (Key_S7_Released() == <span class="num">1</span>) {
+    <span class="kw">if</span> (running == <span class="num">1</span>) { count++; }  <span class="com">/* 暂停时按S7无效 */</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"在当前项目功能的基础上，继续加上…"</strong> — 这个开头成为后续每轮对话的<strong>标准模板</strong>。它明确告诉 AI：在现有代码上叠加，不要重写。AI 据此只新增了 running 变量和 S5 逻辑，原有 S7/S4 功能完整保留</li>
+          <li><strong>"复用按键控制"</strong> — "复用"一词提示 AI 这是一个 toggle（翻转）按键，每按一次切换状态，而非按住有效。AI 用 if-else 翻转 running，对初学者清晰易懂</li>
+          <li><strong>"用S5按键实现"</strong> — 明确指定按键，避免 AI 自行分配。之前 S7 计数、S4 清零已定，S5 用于启停是自然的延续</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这一轮引入了<strong>状态变量</strong> <code>running</code>——这是"状态机"思想的入门。
+           学生应理解：程序的行为不再只看按键，还要看<strong>当前状态</strong>。同一个 S7 键，
+           在"计数中"会 +1，在"已暂停"则无效。这就是状态机的精髓：<strong>输入 + 当前状态 → 行为</strong>。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 6 ========== -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <div class="step-badge">6</div>
+      <div>
+        <div class="step-title">增量添加：加1 / 减1 切换控制</div>
+        <div class="step-goal">目标：S6 键切换加1/减1模式，仅在暂停时可设置</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="dialog-block">
+        <div class="dialog-user">
+          <div class="dialog-label">🙋 用户提问</div>
+          <div class="dialog-content">
+            <div class="quote">"在当前项目功能的基础上，继续加上计数加一和减一的复用按键控制。用S6按键实现。并在液晶屏幕上显示当前人机交互工作状态：计数加1或减1，只能在计数暂停的时候进行设置切换。请设计程序实现"</div>
+          </div>
+        </div>
+        <div class="dialog-ai">
+          <div class="dialog-label">🤖 AI 响应要点</div>
+          <div class="dialog-content">
+            <ul>
+              <li>新增第二个状态变量 <code>unsigned char direction = 1;</code>（1=加1，0=减1）</li>
+              <li>S6 按下 → <strong>仅 running==0（暂停）时</strong>才翻转 direction</li>
+              <li>S7 按下 → running==1 时，direction==1 则 count++，direction==0 则 count--（带下溢保护）</li>
+              <li>第四行显示"计数加1"或"计数减1"；补充"加、减"字模</li>
+            </ul>
+            <pre><span class="com">/* S6：仅暂停时才能切换方向 */</span>
+<span class="kw">if</span> (Key_S6_Released() == <span class="num">1</span>) {
+    <span class="kw">if</span> (running == <span class="num">0</span>) {           <span class="com">/* ← 关键：只有暂停才能设置 */</span>
+        <span class="kw">if</span> (direction == <span class="num">1</span>) { direction = <span class="num">0</span>; }
+        <span class="kw">else</span>              { direction = <span class="num">1</span>; }
+    }
+}
+<span class="com">/* S7：根据方向做加1或减1 */</span>
+<span class="kw">if</span> (Key_S7_Released() == <span class="num">1</span>) {
+    <span class="kw">if</span> (running == <span class="num">1</span>) {
+        <span class="kw">if</span> (direction == <span class="num">1</span>) { count++; }
+        <span class="kw">else</span> { <span class="kw">if</span> (count > <span class="num">0</span>) { count--; } }  <span class="com">/* 减到0不再减 */</span>
+    }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-title">💡 对话技巧分析</div>
+        <ul>
+          <li><strong>"只能在计数暂停的时候进行设置切换"</strong> — 这个<strong>条件约束</strong>是本轮的精髓。AI 据此在 S6 处理中加了 <code>if (running == 0)</code> 这层判断，计数中按 S6 无效。这体现了"设置只能在停止时进行"的交互逻辑（如调电子表时间）</li>
+          <li>程序现在有 <strong>两个独立的状态变量</strong>：<code>running</code>（管"干不干"）和 <code>direction</code>（管"怎么干"）。AI 准确理解了这两个状态的独立性，没有混淆</li>
+          <li>AI 主动加了<strong>下溢保护</strong> <code>if (count > 0) count--;</code>，防止 unsigned char 减到 0 后变 255。这种边界处理是 AI 作为"有经验的开发者"的体现</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📝 教学启示</div>
+        <p>这是项目中最复杂的一轮。学生应重点理解三个概念：① <strong>多状态变量</strong>——程序可以同时有多个
+           独立状态；② <strong>条件限制</strong>——某些操作只在特定状态下有效（S6 只在暂停时有效）；
+           ③ <strong>边界保护</strong>——减到 0 不能再减，这是工程思维的基本素养。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 最终成果 ========== -->
+  <div class="card" id="result">
+    <h2>九、最终项目成果展示</h2>
+
+    <h3>9.1 最终代码结构（main.c 核心部分）</h3>
+    <pre><span class="com">/* 三个全局状态变量 */</span>
+<span class="kw">unsigned char</span> count = <span class="num">0</span>;      <span class="com">/* 计数（0~255） */</span>
+<span class="kw">unsigned char</span> running = <span class="num">1</span>;    <span class="com">/* 1=计数中，0=已暂停 */</span>
+<span class="kw">unsigned char</span> direction = <span class="num">1</span>;  <span class="com">/* 1=加1，0=减1 */</span>
+
+<span class="kw">void</span> <span class="fn">main</span>(<span class="kw">void</span>)
+{
+    <span class="com">/* 初始化 + 画固定界面（标题/标签） */</span>
+    Key_Init(); OLED_Init(); OLED_Clear();
+    OLED_ShowChinese(<span class="num">16</span>, <span class="num">0</span>, <span class="str">"计数控制系统"</span>);
+    OLED_ShowChinese(<span class="num">0</span>, <span class="num">16</span>, <span class="str">"记录次数"</span>);
+    OLED_ShowString(<span class="num">64</span>, <span class="num">16</span>, <span class="str">":"</span>);
+    OLED_ShowChinese(<span class="num">0</span>, <span class="num">32</span>, <span class="str">"计数中"</span>);
+    OLED_ShowChinese(<span class="num">0</span>, <span class="num">48</span>, <span class="str">"计数加"</span>);
+    OLED_ShowString(<span class="num">48</span>, <span class="num">48</span>, <span class="str">"1"</span>);
+    OLED_Update();
+
+    <span class="kw">while</span> (<span class="num">1</span>)
+    {
+        <span class="com">/* 第一阶段：按键事件检测与处理 */</span>
+        <span class="com">/* S5→切换启停  S6→切换加减(仅暂停)  S7→计数  S4→清零 */</span>
+        ...
+
+        <span class="com">/* 第二阶段：显示计数值、工作状态、计数方向 */</span>
+        OLED_ShowNum(<span class="num">72</span>, <span class="num">16</span>, count, <span class="num">3</span>);
+        <span class="com">/* 第三行：计数中/已暂停 */</span>
+        <span class="com">/* 第四行：计数加1/计数减1 */</span>
+        OLED_Update();
+        DelayMs(<span class="num">20</span>);
+    }
+}</pre>
+
+    <h3>9.2 操作流程示例</h3>
+    <table>
+      <tr><th>步骤</th><th>操作</th><th>屏幕变化</th></tr>
+      <tr><td>开机</td><td>—</td><td>计数中，计数加1，次数 000</td></tr>
+      <tr><td>按 S7 五次</td><td>计数</td><td>次数变为 005</td></tr>
+      <tr><td>按 S5</td><td>暂停</td><td>第三行变"已暂停"，按 S7 无效</td></tr>
+      <tr><td>按 S6</td><td>切换方向</td><td>第四行变"计数减1"</td></tr>
+      <tr><td>按 S5</td><td>恢复计数</td><td>第三行变"计数中"</td></tr>
+      <tr><td>按 S7 三次</td><td>减计数</td><td>次数变为 002</td></tr>
+      <tr><td>按 S4</td><td>清零</td><td>次数变为 000</td></tr>
+    </table>
+
+    <h3>9.3 涉及的文件改动汇总</h3>
+    <table>
+      <tr><th>文件</th><th>改动内容</th></tr>
+      <tr><td>hardware/key.c</td><td>新增 Key_Sx_Pressed() 按下事件检测函数；取消 Released 函数的 #if 0 屏蔽</td></tr>
+      <tr><td>hardware/key.h</td><td>新增 Pressed / Released 函数声明</td></tr>
+      <tr><td>hardware/OLED_Data.c</td><td>补充 10 个汉字字模：计、数、记、录、次、清、零、暂、加、减</td></tr>
+      <tr><td>user/main.c</td><td>从电平检测程序重构为计数控制系统（S7计数/S4清零/S5启停/S6加减）</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== 经验总结 ========== -->
+  <div class="card" id="summary">
+    <h2>十、AI 对话经验总结</h2>
+
+    <h3>10.1 有效的提问模式</h3>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <h4>📌 增量式开头</h4>
+        <p>"在当前项目功能的基础上，继续加上…" — 让 AI 在现有代码上叠加，不重写</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 指定实现方式</h4>
+        <p>"用 S5 按键实现" — 明确指定硬件资源，避免 AI 自行分配</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 声明受众</h4>
+        <p>"给初学者用的，逻辑要简单清晰" — 控制 AI 的技术选型深度</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 给出约束</h4>
+        <p>"只能在暂停时切换" — 提供业务规则，AI 会翻译成 if 条件</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 描述界面</h4>
+        <p>"第一行显示…第二行显示…" — 直接给出布局，AI 自动计算坐标</p>
+      </div>
+      <div class="summary-item">
+        <h4>📌 及时纠偏</h4>
+        <p>"暂时不用，恢复原先状态" — 不满意就直说，AI 立即回退</p>
+      </div>
+    </div>
+
+    <h3>10.2 AI 协作的优势与局限</h3>
+    <table>
+      <tr><th>方面</th><th>AI 的优势</th><th>需要注意的局限</th></tr>
+      <tr>
+        <td>代码分析</td>
+        <td>能快速阅读整个项目，理解函数调用关系和代码结构</td>
+        <td>对于大型项目可能遗漏上下文，需确认其理解是否正确</td>
+      </tr>
+      <tr>
+        <td>问题解决</td>
+        <td>主动发现并解决隐藏问题（如字模缺失），调用工具生成数据</td>
+        <td>生成的字模等数据需要编译验证，偶尔可能有格式问题</td>
+      </tr>
+      <tr>
+        <td>代码质量</td>
+        <td>自动添加边界保护（如下溢检查）、注释清晰、附带修改说明</td>
+        <td>有时优化方向不符合教学需求（如引入宏定义），需及时纠偏</td>
+      </tr>
+      <tr>
+        <td>增量开发</td>
+        <td>能在现有代码上精确叠加功能，不破坏已有逻辑</td>
+        <td>需用"在当前基础上"明确提示，否则可能重写</td>
+      </tr>
+    </table>
+
+    <h3>10.3 给学生的建议</h3>
+    <div class="insight-box">
+      <div class="insight-title">📝 三条核心建议</div>
+      <ul>
+        <li><strong>建议一：把 AI 当作"有经验但需要明确指令的助手"</strong> — 它技术很强，但不会猜你的意思。你说得越清楚（做什么、用什么、有什么约束），它做得越好</li>
+        <li><strong>建议二：一轮只提一个需求</strong> — 不要一次抛出所有功能。每轮对话后先看结果、编译验证，确认没问题再提下一个。这样出问题容易定位</li>
+        <li><strong>建议三：你是决策者，AI 是执行者</strong> — AI 提的优化建议可以拒绝，AI 写的代码需要你理解后再用。不要盲目接受，要问"为什么这样写"</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    单片机打卡天天练 · 按键次数计数控制系统 · AI 对话驱动项目开发讲义<br>
+    25机械12班 · STC15 + Keil C51 + OLED 128×64
+  </footer>
+
+</div>
+</body>
+</html>
